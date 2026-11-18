@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100d1b">
+<meta name="description" content="Upload 3 physical tarot cards from your deck and receive a deeply personalised 3-card spread interpretation powered by Google Gemini computer vision.">
+<title>Arcana — 3-Card AI Tarot Experience</title>
+<link rel="stylesheet" href="assets/css/style.css?v=2.2">
+</head>
+<body>
+<header>
+  <div class="brand">ARCANA <span>AI TAROT EXPERIENCE</span></div>
+  <nav>
+    <a href="#home">HOME</a>
+    <a href="#reading">YOUR READING</a>
+  </nav>
+</header>
+
+<main id="home">
+  <div class="eyebrow">✦ 3-card spread · grounded interpretation ✦</div>
+  <h1>Let the cards tell<br>their story.</h1>
+  <p class="intro">Upload photos of your <strong>3 chosen tarot cards</strong>. Arcana will identify each card from the 20-card deck and synthesize a cohesive 3-card spread interpretation.</p>
+
+  <section class="panel">
+    <!-- Header with 3-card counter badge -->
+    <div class="slot-header">
+      <span class="label" style="margin:0;">Your 3 Cards (Past · Present · Future)</span>
+      <span class="card-counter" id="cardCounter">0 / 3 cards selected</span>
+    </div>
+
+    <!-- 3 Upload Slots Grid -->
+    <div class="slots-grid">
+      <!-- Slot 1 -->
+      <div class="card-slot" id="slotContainer1">
+        <div class="slot-badge">Card 1 · Foundation</div>
+        <label class="upload-box" id="dropzone1" for="photo1">
+          <input id="photo1" type="file" accept="image/png,image/jpeg,image/webp">
+          <div class="slot-prompt" id="prompt1">
+            <span class="slot-icon">✧</span>
+            <strong>Upload Card 1</strong>
+            <small>JPG, PNG, WEBP &lt; 5MB</small>
+          </div>
+          <img class="slot-preview" id="preview1" alt="Card 1 preview">
+        </label>
+        <div class="slot-footer">
+          <span class="slot-name" id="fileName1">Empty</span>
+          <button class="remove-btn" id="removeBtn1" type="button" title="Remove card">✕</button>
+        </div>
+      </div>
+
+      <!-- Slot 2 -->
+      <div class="card-slot" id="slotContainer2">
+        <div class="slot-badge">Card 2 · Present</div>
+        <label class="upload-box" id="dropzone2" for="photo2">
+          <input id="photo2" type="file" accept="image/png,image/jpeg,image/webp">
+          <div class="slot-prompt" id="prompt2">
+            <span class="slot-icon">✧</span>
+            <strong>Upload Card 2</strong>
+            <small>JPG, PNG, WEBP &lt; 5MB</small>
+          </div>
+          <img class="slot-preview" id="preview2" alt="Card 2 preview">
+        </label>
+        <div class="slot-footer">
+          <span class="slot-name" id="fileName2">Empty</span>
+          <button class="remove-btn" id="removeBtn2" type="button" title="Remove card">✕</button>
+        </div>
+      </div>
+
+      <!-- Slot 3 -->
+      <div class="card-slot" id="slotContainer3">
+        <div class="slot-badge">Card 3 · Outcome</div>
+        <label class="upload-box" id="dropzone3" for="photo3">
+          <input id="photo3" type="file" accept="image/png,image/jpeg,image/webp">
+          <div class="slot-prompt" id="prompt3">
+            <span class="slot-icon">✧</span>
+            <strong>Upload Card 3</strong>
+            <small>JPG, PNG, WEBP &lt; 5MB</small>
+          </div>
+          <img class="slot-preview" id="preview3" alt="Card 3 preview">
+        </label>
+        <div class="slot-footer">
+          <span class="slot-name" id="fileName3">Empty</span>
+          <button class="remove-btn" id="removeBtn3" type="button" title="Remove card">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question -->
+    <label class="label" for="question" style="margin-top:24px">What would you like insight on?</label>
+    <textarea id="question" maxlength="500" placeholder="For example: What should I keep in mind about my career over the next few months?"></textarea>
+    <div class="char-count" id="charCount">0 / 500</div>
+
+    <!-- Reading categories -->
+    <div class="spread-title">READING STYLE</div>
+    <div class="spreads">
+      <button class="spread active" data-spread="general" type="button">
+        <strong>General guidance</strong>
+        <small>Overall themes and direction</small>
+      </button>
+      <button class="spread" data-spread="love" type="button">
+        <strong>Love &amp; relationships</strong>
+        <small>Connection and communication</small>
+      </button>
+      <button class="spread" data-spread="career" type="button">
+        <strong>Career &amp; purpose</strong>
+        <small>Work, growth and choices</small>
+      </button>
+      <button class="spread" data-spread="growth" type="button">
+        <strong>Personal growth</strong>
+        <small>Self-awareness and inner change</small>
+      </button>
+      <button class="spread" data-spread="future" type="button">
+        <strong>Future possibilities</strong>
+        <small>What may lie ahead</small>
+      </button>
+    </div>
+
+    <!-- Submit & Cancel Actions -->
+    <div class="action-row">
+      <button class="action" id="readBtn" type="button">Reveal my reading ✦</button>
+      <button class="cancel-action-btn" id="cancelBtn" type="button">✕ Cancel interpretation</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <!-- Reading result -->
+  <section id="reading">
+    <div class="reading-head">
+      <h2>Your 3-card reading</h2>
+      <p id="readingSub">A grounded interpretation of your spread</p>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="actions">
+      <button class="secondary" id="copyBtn" type="button">Copy reading</button>
+      <button class="secondary" id="newBtn" type="button">Start a new reading</button>
+    </div>
+  </section>
+
+  <!-- Privacy notice -->
+  <div class="privacy-notice">
+    <strong>Privacy notice</strong><br>
+    Your 3 uploaded card images and question are transmitted securely to Google Gemini for visual matching against the 20-card catalog. Images are processed in-memory and not stored on this website. Handling of data is governed by <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer" style="color:var(--muted);">Google's terms</a>.
+  </div>
+
+  <p class="note">For reflection and entertainment only. Tarot cannot reliably predict the future or guarantee outcomes. Avoid using a reading as the sole basis for medical, legal, financial or other important decisions.</p>
+</main>
+
+<footer>
+  <div>ARCANA · 3-Card AI Tarot Experience</div>
+  <button id="stopServerBtn" class="dev-shutdown-btn" type="button" style="display:none;">⏻ Terminate Local Server</button>
+</footer>
+<script src="assets/js/app.js?v=2.2"></script>
+</body>
+</html>

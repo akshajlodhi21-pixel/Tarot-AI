@@ -1,0 +1,16 @@
+{
+  "name": "tarot-ai",
+  "version": "1.0.0",
+  "description": "AI-powered tarot card interpretation using Google Gemini vision",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "test": "node tests/backend.test.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

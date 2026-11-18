@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100d1b">
+<title>Arcana — AI Tarot Reading</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+:root{--bg:#100d1b;--panel:#1b1629;--gold:#d9b978;--muted:#aaa1b7;--cream:#f3ead8;--line:#40334f;--purple:#342344}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#38264c 0,#100d1b 55%);color:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:22px clamp(18px,6vw,78px);border-bottom:1px solid #ffffff12}
+.brand{font:600 27px 'Cormorant Garamond',serif;letter-spacing:3px;color:var(--gold)}.brand span{font:10px 'DM Sans';letter-spacing:2px;color:var(--muted);display:block;margin-top:1px}
+nav{display:flex;gap:20px;font-size:12px;color:var(--muted)}nav a{color:inherit;text-decoration:none}
+main{max-width:1050px;margin:auto;padding:56px 20px 76px}.eyebrow{text-align:center;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-size:10px}
+h1{text-align:center;font:500 clamp(43px,7vw,72px)/.98 'Cormorant Garamond',serif;margin:17px 0 14px}
+.intro{text-align:center;color:var(--muted);max-width:570px;margin:0 auto 34px;line-height:1.75;font-size:14px}
+.panel{max-width:800px;margin:auto;background:#1b1629dc;border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,34px);box-shadow:0 25px 90px #0005}
+.label{display:block;color:var(--gold);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin:0 0 10px}
+.upload{display:flex;align-items:center;justify-content:center;min-height:205px;border:1px dashed #8c7190;border-radius:15px;background:linear-gradient(135deg,#241a33,#151120);cursor:pointer;overflow:hidden;position:relative;text-align:center;padding:18px}
+.upload:hover,.upload.drag{border-color:var(--gold);background:#2a2037}.upload input{display:none}.upload-content{pointer-events:none}.upload-icon{font-size:35px;color:var(--gold);display:block;margin-bottom:9px}.upload strong{display:block;font:600 21px 'Cormorant Garamond';margin-bottom:5px}.upload small{color:var(--muted);font-size:11px}
+#preview{display:none;max-height:300px;max-width:100%;border-radius:10px;object-fit:contain}.file-info{font-size:11px;color:var(--muted);margin-top:9px;min-height:16px}
+textarea{width:100%;resize:vertical;min-height:74px;border:1px solid #4a3b5b;background:#100d1b;color:var(--cream);border-radius:12px;padding:14px;font:14px 'DM Sans';outline:none;margin-top:20px}
+textarea:focus{border-color:var(--gold)}.spread-title{margin:22px 0 11px;color:var(--muted);font-size:11px;letter-spacing:1px}
+.spreads{display:flex;gap:10px;flex-wrap:wrap}.spread{flex:1;min-width:145px;border:1px solid var(--line);background:#171222;color:var(--cream);border-radius:12px;padding:13px;cursor:pointer;text-align:left}.spread strong{display:block;font-size:12px;margin-bottom:4px}.spread small{color:var(--muted);font-size:10px}.spread.active{border-color:var(--gold);background:#30233b}
+.action{display:block;margin:24px auto 0;background:var(--gold);color:#1a1421;border:0;border-radius:999px;padding:14px 30px;font-weight:700;cursor:pointer;letter-spacing:.3px;min-width:190px}.action:hover{filter:brightness(1.08);transform:translateY(-1px)}.action:disabled{opacity:.55;cursor:wait;transform:none}
+.status{text-align:center;color:var(--muted);font-size:12px;margin:15px 0 0;min-height:18px}
+#reading{display:none;margin:38px auto 0;max-width:800px}.reading-head{text-align:center;margin-bottom:18px}.reading-head h2{font:500 39px 'Cormorant Garamond';margin:0 0 5px}.reading-head p{color:var(--muted);font-size:12px}
+.result{background:#1b1629;border:1px solid var(--line);border-radius:16px;padding:clamp(18px,4vw,30px);line-height:1.8;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.result h3{font:600 24px 'Cormorant Garamond';color:var(--gold);margin:20px 0 5px}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}.secondary{border:1px solid var(--line);background:transparent;color:var(--cream);padding:11px 18px;border-radius:999px;cursor:pointer}
+.note{text-align:center;color:#81788e;font-size:11px;line-height:1.7;margin:25px auto 0;max-width:650px}
+footer{text-align:center;color:#756b80;font-size:11px;padding:27px 20px;border-top:1px solid #ffffff10}
+@media(max-width:620px){nav{gap:12px;font-size:10px}header{padding:18px 20px}main{padding-top:42px}.spreads{flex-direction:column}.spread{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="brand">ARCANA <span>AI TAROT EXPERIENCE</span></div><nav><a href="#home">HOME</a><a href="#reading">YOUR READING</a></nav></header>
+<main id="home">
+<div class="eyebrow">✦ pause · focus · reveal ✦</div>
+<h1>Let the cards tell<br>their story.</h1>
+<p class="intro">Upload a photo of your tarot spread. Arcana will identify the cards and create a thoughtful, personalised reading around your question.</p>
+<section class="panel">
+<label class="label" for="photo">Your tarot spread</label>
+<label class="upload" id="dropzone" for="photo">
+  <input id="photo" type="file" accept="image/png,image/jpeg,image/webp">
+  <span class="upload-content" id="uploadPrompt"><span class="upload-icon">✧</span><strong>Upload your tarot photo</strong><small>Choose a clear image of one or more tarot cards · JPG, PNG or WEBP · max 5 MB</small></span>
+  <img id="preview" alt="Your uploaded tarot spread">
+</label>
+<div class="file-info" id="fileInfo">Your image is analysed for this reading and is not stored by this website.</div>
+<label class="label" for="question" style="margin-top:23px">What would you like insight on?</label>
+<textarea id="question" placeholder="For example: What should I keep in mind about my career over the next few months?"></textarea>
+<div class="spread-title">READING STYLE</div>
+<div class="spreads">
+<button class="spread active" data-spread="general"><strong>General guidance</strong><small>Overall themes and direction</small></button>
+<button class="spread" data-spread="love"><strong>Love & relationships</strong><small>Connection and communication</small></button>
+<button class="spread" data-spread="career"><strong>Career & purpose</strong><small>Work, growth and choices</small></button>
+</div>
+<button class="action" id="readBtn">Reveal my reading ✦</button>
+<div class="status" id="status" aria-live="polite"></div>
+</section>
+<section id="reading">
+<div class="reading-head"><h2>Your personal reading</h2><p id="readingSub">A symbolic interpretation of your cards</p></div>
+<div class="result" id="result"></div>
+<div class="actions"><button class="secondary" id="copyBtn">Copy reading</button><button class="secondary" id="newBtn">Start a new reading</button></div>
+</section>
+<p class="note">For reflection and entertainment only. Tarot cannot reliably predict the future or guarantee outcomes. Avoid using a reading as the sole basis for medical, legal, financial or other important decisions.</p>
+</main>
+<footer>ARCANA · A little space for reflection</footer>
+<script>
+const photo=document.getElementById('photo'), preview=document.getElementById('preview'), promptBox=document.getElementById('uploadPrompt'), drop=document.getElementById('dropzone');
+let imageData='', mimeType='', spread='general', currentReading='';
+document.querySelectorAll('.spread').forEach(btn=>btn.addEventListener('click',()=>{spread=btn.dataset.spread;document.querySelectorAll('.spread').forEach(b=>b.classList.toggle('active',b===btn));}));
+function loadFile(file){
+  if(!file)return;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setStatus('Please choose a JPG, PNG or WEBP image.');return;}
+  if(file.size>5*1024*1024){setStatus('Image is larger than 5 MB. Please choose a smaller file.');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{imageData=reader.result;mimeType=file.type;preview.src=imageData;preview.style.display='block';promptBox.style.display='none';document.getElementById('fileInfo').textContent=file.name+' · '+(file.size/1024/1024).toFixed(2)+' MB';setStatus('Image ready. Add a question or start your reading.');};
+  reader.readAsDataURL(file);
+}
+photo.addEventListener('change',e=>loadFile(e.target.files[0]));
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+function setStatus(t){document.getElementById('status').textContent=t;}
+document.getElementById('readBtn').addEventListener('click',async()=>{
+  if(!imageData){setStatus('Upload a photo of your tarot cards first.');return;}
+  const btn=document.getElementById('readBtn');btn.disabled=true;btn.textContent='Reading the cards…';setStatus('The cards are being examined. This can take a few moments.');
+  document.getElementById('reading').style.display='none';
+  try{
+    const res=await fetch('/.netlify/functions/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:imageData,question:document.getElementById('question').value.trim(),spread})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'The reading could not be generated.');
+    currentReading=data.reading||'No reading was returned.';
+    document.getElementById('result').textContent=currentReading;
+    document.getElementById('readingSub').textContent='AI-assisted interpretation · '+new Date().toLocaleDateString();
+    document.getElementById('reading').style.display='block';document.getElementById('reading').scrollIntoView({behavior:'smooth',block:'start'});setStatus('');
+  }catch(err){setStatus(err.message+' Check your Netlify API key setup and try again.');}
+  finally{btn.disabled=false;btn.textContent='Reveal my reading ✦';}
+});
+document.getElementById('copyBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(currentReading);document.getElementById('copyBtn').textContent='Copied ✓';setTimeout(()=>document.getElementById('copyBtn').textContent='Copy reading',1400)}catch(e){setStatus('Copy is unavailable in this browser.');}});
+document.getElementById('newBtn').addEventListener('click',()=>{document.getElementById('reading').style.display='none';document.getElementById('home').scrollIntoView({behavior:'smooth'});});
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+[
+  {
+    "id": "card_00",
+    "number": "Card 0",
+    "name": "The Fool",
+    "fileName": "Card 0 - The Fool.jpg",
+    "element": "Air",
+    "keywords": ["New beginnings", "Spontaneity", "Faith", "Innocence", "Leap of faith", "Potential"],
+    "description": "Represents the dawn of an adventure, stepping boldly into the unknown with purity of heart, infinite possibilities, and openness to life."
+  },
+  {
+    "id": "card_01",
+    "number": "Card 1",
+    "name": "The Magician",
+    "fileName": "Card 1 - The Magician .jpg",
+    "element": "Air / Mercury",
+    "keywords": ["Manifestation", "Resourcefulness", "Willpower", "Focused intent", "Skill"],
+    "description": "Represents channeling creative and mental power into physical reality. You possess all the resources and talent required to manifest your desires."
+  },
+  {
+    "id": "card_02",
+    "number": "Card 2",
+    "name": "The High Priestess",
+    "fileName": "Card 2 - The High Priestess.jpg",
+    "element": "Water",
+    "keywords": ["Intuition", "Sacred mysteries", "Subconscious", "Inner knowing", "Divine feminine"],
+    "description": "Represents listening to deep intuition, unseen spiritual truths, quiet contemplative wisdom, and trusting your inner voice."
+  },
+  {
+    "id": "card_03",
+    "number": "Card 3",
+    "name": "The Empress",
+    "fileName": "Card 3 - The Empress.jpg",
+    "element": "Earth",
+    "keywords": ["Abundance", "Fertility", "Creativity", "Nurturing", "Sensual beauty"],
+    "description": "Represents natural abundance, radiant fertility, creative gestation, nurturing growth, and harmonious connection to physical pleasures."
+  },
+  {
+    "id": "card_04",
+    "number": "Card 4",
+    "name": "The Emperor",
+    "fileName": "Card 4 - The Emperor.jpg",
+    "element": "Fire",
+    "keywords": ["Structure", "Stability", "Authority", "Discipline", "Protective leadership"],
+    "description": "Represents establishing order from chaotic forces, creating enduring structures, sound boundaries, and providing disciplined leadership."
+  },
+  {
+    "id": "card_05",
+    "number": "Card 5",
+    "name": "The Herophant",
+    "fileName": "Card 5 - The Herophant.jpg",
+    "element": "Earth",
+    "keywords": ["Spiritual guidance", "Tradition", "Mentorship", "Shared beliefs", "Ethics"],
+    "description": "Represents seeking higher learning, grounded tradition, sacred institutions, mentorship, and aligning with ethical codes of conduct."
+  },
+  {
+    "id": "card_06",
+    "number": "Card 6",
+    "name": "The Lovers",
+    "fileName": "Card 6 - The Lovers.jpg",
+    "element": "Air",
+    "keywords": ["Harmonious union", "Values alignment", "Soul connection", "Choice", "Commitment"],
+    "description": "Represents profound partnership, emotional and spiritual intimacy, and making pivotal choices that align with your highest moral values."
+  },
+  {
+    "id": "card_07",
+    "number": "Card 7",
+    "name": "The Chariot",
+    "fileName": "Card 7 - The Chariot.jpg",
+    "element": "Water",
+    "keywords": ["Determination", "Willpower", "Drive", "Victory", "Overcoming resistance"],
+    "description": "Represents conquering internal and external obstacles through focused determination, master of dual impulses, and driving toward victory."
+  },
+  {
+    "id": "card_08",
+    "number": "Card 8",
+    "name": "The Strength",
+    "fileName": "Card 8 - The Strength.jpg",
+    "element": "Fire",
+    "keywords": ["Courage", "Gentle fortitude", "Compassion", "Patience", "Inner resilience"],
+    "description": "Represents taming passions and facing adversity through gentle mastery, compassionate conviction, emotional endurance, and quiet resilience."
+  },
+  {
+    "id": "card_09",
+    "number": "Card 9",
+    "name": "The Hermit",
+    "fileName": "Card 9 - The Hermit.jpg",
+    "element": "Earth",
+    "keywords": ["Introspection", "Solitude", "Inner lantern", "Soul-searching", "Spiritual illumination"],
+    "description": "Represents withdrawing from outer distractions to illuminate your personal truth, engaging in quiet reflection, and finding inner clarity."
+  },
+  {
+    "id": "card_10",
+    "number": "Card 10",
+    "name": "Wheel Of Fortune",
+    "fileName": "Card 10 - Wheel Of Fortune.jpg",
+    "element": "Fire",
+    "keywords": ["Cycles of change", "Destiny", "Turning point", "Serendipity", "Karma"],
+    "description": "Represents the perpetual cycles of fate, fortunate shifts in circumstances, recognizing timely opportunities, and adapting to life's rhythm."
+  },
+  {
+    "id": "card_11",
+    "number": "Card 11",
+    "name": "Justice",
+    "fileName": "Card 11 - Justice.jpg",
+    "element": "Air",
+    "keywords": ["Fairness", "Objective truth", "Karma", "Accountability", "Ethical balance"],
+    "description": "Represents lucid fairness, impartial truth-seeking, balance of cause and consequence, moral accountability, and clear discernment."
+  },
+  {
+    "id": "card_12",
+    "number": "Card 12",
+    "name": "The Hanged Man",
+    "fileName": "Card 12 - The Hanged Man.jpg",
+    "element": "Water",
+    "keywords": ["Surrender", "New perspective", "Pause", "Letting go", "Suspended action"],
+    "description": "Represents the wisdom of non-action, intentionally pausing to view situations upside-down, releasing the need to control outcomes."
+  },
+  {
+    "id": "card_13",
+    "number": "Card 13",
+    "name": "Death",
+    "fileName": "Card 13 - Death.jpg",
+    "element": "Water",
+    "keywords": ["Profound transition", "Necessary endings", "Rebirth", "Metamorphosis", "Clearing away"],
+    "description": "Represents the absolute closing of obsolete cycles, peeling away outdated identities, and clearing the spiritual soil for profound rebirth."
+  },
+  {
+    "id": "card_14",
+    "number": "Card 14",
+    "name": "Temperance",
+    "fileName": "Card 14 - Temperance.jpg",
+    "element": "Fire",
+    "keywords": ["Equilibrium", "Patience", "Moderation", "Integration", "Alchemy"],
+    "description": "Represents blending opposites into harmonious synthesis, cultivating quiet patience, inner poise, and healing through balance."
+  },
+  {
+    "id": "card_15",
+    "number": "Card 15",
+    "name": "The Devil",
+    "fileName": "Card 15 - The Devil.jpg",
+    "element": "Earth",
+    "keywords": ["Illusion of entrapment", "Shadow habits", "Materialism", "Obsession", "Awakening to freedom"],
+    "description": "Represents recognizing self-limiting bonds, addictions to control or material comforts, and realizing the chains holding you are loose enough to remove."
+  },
+  {
+    "id": "card_16",
+    "number": "Card 16",
+    "name": "The Tower",
+    "fileName": "Card 16 - The Tower.jpg",
+    "element": "Fire",
+    "keywords": ["Sudden breakthrough", "Shattering illusions", "Radical liberation", "Rebuilding", "Revelation"],
+    "description": "Represents the sudden lightning bolt that collapses false structures and illusions, paving the path for honest, authentic foundation-building."
+  },
+  {
+    "id": "card_17",
+    "number": "Card 17",
+    "name": "The Star",
+    "fileName": "Card 17 - The Star.jpg",
+    "element": "Air",
+    "keywords": ["Hope", "Spiritual renewal", "Serenity", "Inspiration", "Guiding beacon"],
+    "description": "Represents tranquil healing after turbulent storms, replenished faith, creative and spiritual inspiration, and optimism for the journey."
+  },
+  {
+    "id": "card_18",
+    "number": "Card 18",
+    "name": "The Moon",
+    "fileName": "Card 18 - The Moon.jpg",
+    "element": "Water",
+    "keywords": ["Subconscious depths", "Illusion", "Dreams", "Unraveling fear", "Intuitive navigation"],
+    "description": "Represents navigating through murky illusions or subconscious anxieties, facing hidden fears, and relying on instinctive wisdom."
+  },
+  {
+    "id": "card_19",
+    "number": "Card 19",
+    "name": "The Sun",
+    "fileName": "Card 19 - The Sun.jpg",
+    "element": "Fire",
+    "keywords": ["Radiance", "Vitality", "Joy", "Clarity", "Success", "Warmth"],
+    "description": "Represents triumphant celebration, luminous clarity, vibrant good health, joyful self-expression, and unhindered success."
+  }
+]
