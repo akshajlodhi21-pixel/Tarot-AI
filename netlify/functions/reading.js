@@ -278,7 +278,7 @@ exports.handler = async (event) => {
     });
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
   // Build Prompts
   const systemPrompt = buildSystemPrompt();
@@ -323,7 +323,7 @@ exports.handler = async (event) => {
       }
     }
 
-    const modelsToTry = [...new Set(['gemini-3.8-flash', model, 'gemini-flash-latest', 'gemini-2.0-flash'])];
+    const modelsToTry = [...new Set(['gemini-3.5-flash-lite', model, 'gemini-3.8-flash', 'gemini-flash-latest'])];
     let text = null;
     let lastError = null;
 

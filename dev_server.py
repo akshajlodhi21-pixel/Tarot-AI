@@ -241,7 +241,7 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
 
         # Check API Key
         api_key = os.environ.get("GEMINI_API_KEY") or current_env.get("GEMINI_API_KEY")
-        model = os.environ.get("GEMINI_MODEL") or current_env.get("GEMINI_MODEL") or "gemini-3.8-flash"
+        model = os.environ.get("GEMINI_MODEL") or current_env.get("GEMINI_MODEL") or "gemini-3.5-flash-lite"
 
         if not api_key or api_key == "your_gemini_api_key_here":
             self.send_json_error(
@@ -264,10 +264,10 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
 
         full_prompt = build_system_prompt() + "\n\n" + user_prompt
 
-        models_to_try = ["gemini-3.8-flash"]
+        models_to_try = ["gemini-3.5-flash-lite"]
         if model and model not in models_to_try:
             models_to_try.append(model)
-        for fallback in ["gemini-flash-latest", "gemini-2.0-flash"]:
+        for fallback in ["gemini-3.8-flash", "gemini-flash-latest"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
 

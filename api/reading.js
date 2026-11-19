@@ -276,7 +276,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
   // Build Prompts
   const systemPrompt = buildSystemPrompt();
@@ -320,7 +320,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const modelsToTry = ['gemini-3.8-flash', model, 'gemini-flash-latest', 'gemini-2.0-flash'];
+    const modelsToTry = ['gemini-3.5-flash-lite', model, 'gemini-3.8-flash', 'gemini-flash-latest'];
     // Deduplicate models
     const uniqueModels = [...new Set(modelsToTry)];
     let text = null;
