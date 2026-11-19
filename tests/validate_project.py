@@ -75,16 +75,33 @@ if os.path.isfile(js_path):
     test("app.js implements AbortController for execution termination", "AbortController" in js and "abort()" in js)
     test("app.js handles Escape key to cancel reading", "Escape" in js and "terminateExecution" in js)
 
-# 4. Backend Netlify Function
+# 4. Backend Serverless Functions (Vercel & Netlify)
 print("\n4. Serverless Backend Function Verification")
+v_fn_path = os.path.join(BASE_DIR, "api", "reading.js")
+test("api/reading.js (Vercel Serverless Function) exists", os.path.isfile(v_fn_path))
+if os.path.isfile(v_fn_path):
+    with open(v_fn_path, "r", encoding="utf-8") as f:
+        v_fn = f.read()
+    test("api/reading.js handles Vercel req/res signature", "module.exports" in v_fn and "req, res" in v_fn)
+    test("api/reading.js requires exactly 3 cards", "cardList.length !== 3" in v_fn)
+    test("api/reading.js supports orientation (Upright vs Reversed)", "Reversed" in v_fn and "Upright" in v_fn)
+
+v_cfg = os.path.join(BASE_DIR, "vercel.json")
+test("vercel.json exists", os.path.isfile(v_cfg))
+if os.path.isfile(v_cfg):
+    with open(v_cfg, "r", encoding="utf-8") as f:
+        v_data = json.load(f)
+    test("vercel.json configures maxDuration 60", v_data.get("functions", {}).get("api/reading.js", {}).get("maxDuration") == 60)
+    test("vercel.json configures Content-Security-Policy", any("Content-Security-Policy" in str(h) for h in v_data.get("headers", [])))
+
 fn_path = os.path.join(BASE_DIR, "netlify", "functions", "reading.js")
 if os.path.isfile(fn_path):
     with open(fn_path, "r", encoding="utf-8") as f:
         fn = f.read()
-    test("reading.js loads or contains 20-card catalog", "loadCardCatalog" in fn or "CARDS_CATALOG" in fn)
-    test("reading.js requires exactly 3 cards", "cardList.length !== 3" in fn)
-    test("reading.js supports orientation (Upright vs Reversed)", "Reversed" in fn and "Upright" in fn)
-    test("reading.js enforces 3-card spread positions (Past, Present, Future)", "Position 1" in fn and "Position 2" in fn and "Position 3" in fn)
+    test("netlify reading.js loads or contains 20-card catalog", "loadCardCatalog" in fn or "CARDS_CATALOG" in fn)
+    test("netlify reading.js requires exactly 3 cards", "cardList.length !== 3" in fn)
+    test("netlify reading.js supports orientation (Upright vs Reversed)", "Reversed" in fn and "Upright" in fn)
+    test("netlify reading.js enforces 3-card spread positions (Past, Present, Future)", "Position 1" in fn and "Position 2" in fn and "Position 3" in fn)
 
 # Print summary
 print("\n" + "=" * 60)

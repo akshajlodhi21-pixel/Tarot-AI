@@ -134,8 +134,8 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         import urllib.parse
         clean_path = urllib.parse.unquote(raw_path).replace('\\', '/')
         segments = [s.lower() for s in clean_path.split('/') if s]
-        blocked_names = {'.env', '.env.local', '.env.example', '.gitignore', '.git', 'package.json', 'package-lock.json', 'dev_server.py'}
-        blocked_dirs  = {'.git', 'node_modules', 'tests'}
+        blocked_names = {'.env', '.env.local', '.env.example', '.gitignore', '.git', 'package.json', 'package-lock.json', 'dev_server.py', 'vercel.json'}
+        blocked_dirs  = {'.git', 'node_modules', 'tests', 'api'}
 
         if (
             '..' in segments or 
@@ -164,7 +164,7 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path.startswith("/.netlify/functions/reading"):
+        if self.path.startswith("/api/reading") or self.path.startswith("/.netlify/functions/reading"):
             self.handle_reading()
         elif self.path == "/api/shutdown":
             self.send_response(200)

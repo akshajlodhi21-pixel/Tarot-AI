@@ -4,8 +4,7 @@
   "description": "AI-powered tarot card interpretation using Google Gemini vision",
   "private": true,
   "scripts": {
-    "dev": "netlify dev",
-    "test": "node tests/backend.test.js"
+    "dev": "python dev_server.py"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0"

@@ -120,7 +120,7 @@
   const MAX_QUESTION  = 500;
   const MAX_FILE_SIZE = 25 * 1024 * 1024;
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-  const API_ENDPOINT  = '/.netlify/functions/reading';
+  const API_ENDPOINT  = '/api/reading';
 
   // ── Mode Switcher Logic ─────────────────────────────────────
   function switchMode(mode) {
