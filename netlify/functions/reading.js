@@ -248,6 +248,12 @@ exports.handler = async (event) => {
     const reversed = typeof raw === 'object' ? !!raw.reversed : false;
     const label = (typeof raw === 'object' && raw.label) ? raw.label : (i === 0 ? 'Past' : i === 1 ? 'Present' : 'Future');
 
+    if (!name && !parsedImg) {
+      return respond(400, {
+        error: `Card ${i + 1} is invalid. A card name or valid image is required.`,
+      });
+    }
+
     parsedCards.push({
       position: i + 1,
       label,

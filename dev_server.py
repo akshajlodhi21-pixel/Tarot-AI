@@ -129,12 +129,21 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         # ── Security Audit: Block access to sensitive files & dotfiles ──
-        clean_path = self.path.split('?')[0].split('#')[0]
+        raw_path = self.path.split('?')[0].split('#')[0]
+        # Normalize Windows backslashes and URL decode
+        import urllib.parse
+        clean_path = urllib.parse.unquote(raw_path).replace('\\', '/')
         segments = [s.lower() for s in clean_path.split('/') if s]
-        blocked_names = {'.env', '.env.local', '.env.example', '.gitignore', '.git', 'package.json', 'package-lock.json'}
+        blocked_names = {'.env', '.env.local', '.env.example', '.gitignore', '.git', 'package.json', 'package-lock.json', 'dev_server.py'}
         blocked_dirs  = {'.git', 'node_modules', 'tests'}
 
-        if any(seg in blocked_names for seg in segments) or any(d in segments for d in blocked_dirs) or clean_path.endswith('.env'):
+        if (
+            '..' in segments or 
+            any(seg in blocked_names for seg in segments) or 
+            any(d in segments for d in blocked_dirs) or 
+            clean_path.endswith('.env') or
+            clean_path.startswith('/..')
+        ):
             self.send_response(403)
             self.send_cors_headers()
             self.send_header("Content-Type", "application/json")
@@ -175,6 +184,9 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         if content_length == 0:
             self.send_json_error(400, "Empty request body.")
             return
+        if content_length > 25 * 1024 * 1024:
+            self.send_json_error(413, "Payload too large. Maximum size is 25 MB.")
+            return
 
         body_raw = self.rfile.read(content_length).decode("utf-8")
         try:
@@ -213,6 +225,10 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
             number = raw.get("number") if isinstance(raw, dict) else f"Card {i + 1}"
             reversed_flag = bool(raw.get("reversed", False)) if isinstance(raw, dict) else False
             label = raw.get("label", "Past" if i == 0 else ("Present" if i == 1 else "Future")) if isinstance(raw, dict) else ("Past" if i == 0 else ("Present" if i == 1 else "Future"))
+
+            if not name and not parsed_img:
+                self.send_json_error(400, f"Card {i + 1} is invalid. A card name or valid image is required.")
+                return
 
             parsed_cards.append({
                 "position": i + 1,
