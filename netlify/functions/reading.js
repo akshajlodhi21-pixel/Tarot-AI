@@ -278,7 +278,7 @@ exports.handler = async (event) => {
     });
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
   // Build Prompts
   const systemPrompt = buildSystemPrompt();
@@ -323,8 +323,9 @@ exports.handler = async (event) => {
       }
     }
 
-    const modelsToTry = [model, 'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash'];
+    const modelsToTry = [...new Set(['gemini-3.8-flash', model, 'gemini-flash-latest', 'gemini-2.0-flash'])];
     let text = null;
+    let lastError = null;
 
     for (const currentModel of modelsToTry) {
       try {
@@ -333,17 +334,15 @@ exports.handler = async (event) => {
         text = result.response.text();
         if (text && text.trim().length > 0) break;
       } catch (mErr) {
-        const mMsg = mErr.message || '';
-        if (mMsg.includes('503') || mMsg.includes('NOT_FOUND') || mMsg.includes('404')) {
-          continue;
-        }
-        throw mErr;
+        lastError = mErr;
+        console.warn(`Model ${currentModel} error:`, mErr.message || mErr);
+        continue;
       }
     }
 
     if (!text || text.trim().length === 0) {
       return respond(502, {
-        error: 'The AI did not return a reading. Please try again.',
+        error: lastError ? `AI error (${lastError.message || 'unknown'}). Please try again.` : 'The AI did not return a reading. Please try again.',
       });
     }
 

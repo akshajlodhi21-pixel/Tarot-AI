@@ -241,7 +241,7 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
 
         # Check API Key
         api_key = os.environ.get("GEMINI_API_KEY") or current_env.get("GEMINI_API_KEY")
-        model = os.environ.get("GEMINI_MODEL") or current_env.get("GEMINI_MODEL") or "gemini-flash-latest"
+        model = os.environ.get("GEMINI_MODEL") or current_env.get("GEMINI_MODEL") or "gemini-3.8-flash"
 
         if not api_key or api_key == "your_gemini_api_key_here":
             self.send_json_error(
@@ -264,8 +264,10 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
 
         full_prompt = build_system_prompt() + "\n\n" + user_prompt
 
-        models_to_try = [model]
-        for fallback in ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]:
+        models_to_try = ["gemini-3.8-flash"]
+        if model and model not in models_to_try:
+            models_to_try.append(model)
+        for fallback in ["gemini-flash-latest", "gemini-2.0-flash"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
 
@@ -284,9 +286,35 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
                     })
 
             payload = {"contents": [{"parts": parts_list}]}
+            payload_json = json.dumps(payload)
+
+            # Try curl.exe first for instant Windows networking & Happy Eyeballs IPv4
+            import subprocess, shutil
+            if shutil.which("curl"):
+                try:
+                    proc = subprocess.run(
+                        ["curl.exe", "-s", "-X", "POST", api_url, "-H", "Content-Type: application/json", "--data-binary", "@-"],
+                        input=payload_json.encode("utf-8"),
+                        capture_output=True,
+                        timeout=45
+                    )
+                    if proc.returncode == 0:
+                        resp_data = json.loads(proc.stdout.decode("utf-8", errors="replace"))
+                        if "error" in resp_data:
+                            print(f"Gemini API [{current_model}] error: {resp_data['error']}")
+                            continue
+                        candidates = resp_data.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            reading_text = "".join(p.get("text", "") for p in parts)
+                            if reading_text and reading_text.strip():
+                                break
+                except Exception as c_err:
+                    print(f"curl attempt failed: {c_err}")
+
             req = urllib.request.Request(
                 api_url,
-                data=json.dumps(payload).encode("utf-8"),
+                data=payload_json.encode("utf-8"),
                 headers={"Content-Type": "application/json"}
             )
 
