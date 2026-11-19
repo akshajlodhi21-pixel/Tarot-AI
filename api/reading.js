@@ -337,15 +337,15 @@ module.exports = async function handler(req, res) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const contentParts = [systemPrompt + '\n\n' + userPrompt];
+    const promptText = systemPrompt + '\n\n' + userPrompt;
+    let requestPayload = promptText;
 
-    // Image Optimization: Only send vision payload when in Photo mode
-    // In Deck mode, all 3 cards are already fully identified and defined by the catalog text prompt.
-    // This avoids unnecessary base64 upload overhead and drops Gemini response time significantly.
+    // Image Optimization: Only send multimodal parts when in Photo mode
     if (mode === 'photo') {
+      const parts = [promptText];
       for (const c of parsedCards) {
         if (c.image) {
-          contentParts.push({
+          parts.push({
             inlineData: {
               mimeType: c.image.mime,
               data: c.image.data,
@@ -353,6 +353,7 @@ module.exports = async function handler(req, res) {
           });
         }
       }
+      requestPayload = parts;
     }
 
     const modelsToTry = [model, 'gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-flash-latest'];
@@ -366,15 +367,10 @@ module.exports = async function handler(req, res) {
     for (const currentModel of uniqueModels) {
       try {
         const geminiModel = genAI.getGenerativeModel({
-          model: currentModel,
-          generationConfig: {
-            temperature: 0.8,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          }
+          model: currentModel
         });
 
-        const generatePromise = geminiModel.generateContent(contentParts);
+        const generatePromise = geminiModel.generateContent(requestPayload);
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('REQUEST_TIMEOUT')), TIMEOUT_MS)
         );
@@ -414,7 +410,7 @@ module.exports = async function handler(req, res) {
 
     if (!text || text.trim().length === 0) {
       return res.status(502).json({
-        error: lastError ? 'The AI service was unable to generate your reading. Please try again.' : 'No interpretation was returned by the AI.',
+        error: lastError ? `The AI service was unable to generate your reading (${lastError.message || 'unknown'}). Please try again.` : 'No interpretation was returned by the AI.',
         code: 'GENERATION_FAILED'
       });
     }
