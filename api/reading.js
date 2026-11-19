@@ -361,8 +361,8 @@ module.exports = async function handler(req, res) {
     let text = null;
     let lastError = null;
 
-    // Execute with a 28-second timeout to prevent hanging serverless invocations
-    const TIMEOUT_MS = 28_000;
+    // Execute with a 55-second timeout (safely within Vercel maxDuration of 60s)
+    const TIMEOUT_MS = 55_000;
 
     for (const currentModel of uniqueModels) {
       try {

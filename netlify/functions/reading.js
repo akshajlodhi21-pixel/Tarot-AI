@@ -352,7 +352,8 @@ exports.handler = async (event) => {
     let text = null;
     let lastError = null;
 
-    const TIMEOUT_MS = 28_000;
+    // Execute with a 55-second timeout (safely within maxDuration of 60s)
+    const TIMEOUT_MS = 55_000;
 
     for (const currentModel of modelsToTry) {
       try {
