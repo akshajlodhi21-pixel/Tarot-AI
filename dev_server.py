@@ -1,5 +1,5 @@
 """
-ARCANA — Local Development Server (3-Card Spread Edition)
+ARCANA — Local Development Server (3-Card Interactive Deck + Vision Edition)
 Zero-dependency Python dev server for Tarot AI.
 Serves static frontend assets and emulates the Netlify serverless function:
 POST /.netlify/functions/reading
@@ -16,7 +16,7 @@ import urllib.error
 PORT = 8888
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ── Load .env file if present ─────────────────────────────────
+# ── Load .env file dynamically ────────────────────────────────
 def load_env():
     env_vars = {}
     env_path = os.path.join(BASE_DIR, ".env")
@@ -28,8 +28,6 @@ def load_env():
                     k, v = line.split("=", 1)
                     env_vars[k.strip()] = v.strip().strip('"').strip("'")
     return env_vars
-
-ENV = load_env()
 
 # ── Load 20-Card Catalog ──────────────────────────────────────
 def load_card_catalog():
@@ -52,50 +50,55 @@ def build_catalog_prompt_text():
     return "\n".join(lines)
 
 SPREAD_LABELS = {
-    "general": "General Reading",
-    "love": "Love and Relationships",
-    "career": "Career and Professional Life",
-    "growth": "Personal Growth",
-    "future": "Future Possibilities"
+    "general": "General Guidance (Overall themes and direction)",
+    "love": "Love & Relationships (Connection and communication)",
+    "career": "Career & Purpose (Work, growth and choices)",
+    "growth": "Personal Growth (Self-awareness and inner change)",
+    "future": "Future Possibilities (What may lie ahead)"
 }
 
 def build_system_prompt():
     return f"""You are an experienced, thoughtful tarot interpreter specializing in 3-card spread interpretations.
 
-You are interpreting a physical 3-card reading chosen from a fixed, canonical 20-card deck.
+You are interpreting a 3-card reading chosen from a fixed, canonical 20-card deck.
 
 CANONICAL 20-CARD DECK CATALOG:
 {build_catalog_prompt_text()}
 
 SPREAD STRUCTURE (EXACTLY 3 CARDS):
-- Position 1 (First uploaded image): Card 1 — Foundation / Past / Root Cause
-- Position 2 (Second uploaded image): Card 2 — Present / Active Dynamics / Current Focus
-- Position 3 (Third uploaded image): Card 3 — Future / Emerging Potential / Outcome & Guidance
+- Position 1: Card 1 — Past / Foundation / What shaped this
+- Position 2: Card 2 — Present / Active Dynamics / Where you stand
+- Position 3: Card 3 — Future / Emerging Potential / Where it may lead
+
+CARD ORIENTATION (UPRIGHT VS. REVERSED):
+Each card in the spread has an orientation: Upright or Reversed.
+- Upright: Direct, outward, constructive manifestation of the card's archetype and qualities.
+- Reversed: Internalized processing, shadow dynamics, blocked energy, delayed manifestation, or an invitation to redirect the archetype inward.
+When a card is indicated as Reversed, ground your interpretation specifically in the reversed symbolism and psychological nuances.
 
 ANALYSIS RULES:
-1. Examine each of the 3 images in order. Match each image specifically to one card from the 20-Card Deck Catalog above.
-2. State the card number and official card name clearly.
-3. If an image is blurry, obscured, or does not match a card in the 20-card deck, explicitly state that it cannot be identified. Do NOT fabricate or invent cards.
-4. Ground the interpretation strictly in the symbolism and keywords provided in the catalog.
-5. Provide a cohesive narrative showing how Card 1 leads to Card 2, and how Card 2 informs the path toward Card 3.
-6. Present future trajectories as empowering possibilities rather than fatalistic predictions.
-7. Do not make medical, legal, or financial guarantees.
+1. Examine each card in order (Position 1 -> Position 2 -> Position 3).
+2. State the card number and official card name, along with whether it is Upright or Reversed.
+3. Ground the interpretation strictly in the symbolism and keywords provided in the catalog.
+4. Provide a cohesive narrative arc showing how the Past shaped the Present, and how the Present informs the emerging Future.
+5. Present future trajectories as empowering possibilities rather than fatalistic predictions.
+6. Do not make medical, legal, or financial guarantees.
 
 RESPONSE STRUCTURE (Use these markdown headings):
 ## Cards Recognised
 (List:
-- **Card 1 (Foundation):** [Card Number & Name] — [Identified visual traits]
-- **Card 2 (Present):** [Card Number & Name] — [Identified visual traits]
-- **Card 3 (Outcome):** [Card Number & Name] — [Identified visual traits])
+- **Card 1 (Past / Foundation):** [Card Name] ([Upright or Reversed]) — [Identified symbolism]
+- **Card 2 (Present / Active Dynamics):** [Card Name] ([Upright or Reversed]) — [Identified symbolism]
+- **Card 3 (Future / Outcome):** [Card Name] ([Upright or Reversed]) — [Identified symbolism])
 
 ## Individual Card Meanings
-(Detail each card's grounded meaning from the catalog and its significance in its specific spread position)
+(Detail each card's grounded meaning and its specific significance in its spread position and orientation)
 
 ## 3-Card Spread Dynamics
-(Connect the 3 cards into an overall narrative: how the root foundation influences the present moment, and what that signals for the emerging future)
+(Connect the 3 cards into an overall narrative arc: how the Past influences the Present, and what that signals for the emerging Future)
 
 ## Personalised Reading
-(Directly answer the user's question and category with thoughtful, grounded insights)
+(Directly answer the user's question and reading category with deep, thoughtful, and resonant insights)
 
 ## Challenges and Opportunities
 (Key obstacles to navigate and strengths to embrace based on the 3 cards)
@@ -104,7 +107,7 @@ RESPONSE STRUCTURE (Use these markdown headings):
 (Concrete, actionable advice derived from the cards)
 
 ## Final Reflection
-(A grounding, inspiring closing message for reflection)"""
+(A grounding, inspiring closing message for contemplation)"""
 
 def parse_image_data_url(image_str):
     if not image_str or not isinstance(image_str, str):
@@ -166,7 +169,6 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_error(404, "Endpoint not found.")
 
     def handle_reading(self):
-        # Reload env on every request to pick up updated keys dynamically
         current_env = load_env()
 
         content_length = int(self.headers.get("Content-Length", 0))
@@ -185,28 +187,41 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         image_input = data.get("image", None)
         question = data.get("question", "").strip()[:500]
         spread = data.get("spread", "general")
+        mode = data.get("mode", "deck")
 
-        raw_images = []
+        card_list = []
         if isinstance(cards_input, list) and len(cards_input) > 0:
-            for item in cards_input:
-                if isinstance(item, dict) and "image" in item:
-                    raw_images.append(item["image"])
-                elif isinstance(item, str):
-                    raw_images.append(item)
+            card_list = cards_input
         elif image_input:
-            raw_images = [image_input]
+            card_list = [{"image": image_input}]
 
-        if len(raw_images) != 3:
-            self.send_json_error(400, f"Exactly 3 cards are required. Received {len(raw_images)}.")
+        if len(card_list) != 3:
+            self.send_json_error(400, f"Exactly 3 cards are required. Received {len(card_list)}.")
             return
 
-        parsed_images = []
-        for i, img in enumerate(raw_images):
-            parsed = parse_image_data_url(img)
-            if not parsed:
-                self.send_json_error(400, f"Card {i + 1} is invalid or exceeds 5 MB. Please upload a JPG, PNG or WEBP.")
-                return
-            parsed_images.append(parsed)
+        parsed_cards = []
+        for i, raw in enumerate(card_list):
+            img_str = raw if isinstance(raw, str) else (raw.get("image") if isinstance(raw, dict) else None)
+            parsed_img = None
+            if img_str:
+                parsed_img = parse_image_data_url(img_str)
+                if not parsed_img and (mode == "photo" or img_str.startswith("data:")):
+                    self.send_json_error(400, f"Card {i + 1} has an invalid image format or exceeds 5 MB.")
+                    return
+
+            name = raw.get("name") if isinstance(raw, dict) else None
+            number = raw.get("number") if isinstance(raw, dict) else f"Card {i + 1}"
+            reversed_flag = bool(raw.get("reversed", False)) if isinstance(raw, dict) else False
+            label = raw.get("label", "Past" if i == 0 else ("Present" if i == 1 else "Future")) if isinstance(raw, dict) else ("Past" if i == 0 else ("Present" if i == 1 else "Future"))
+
+            parsed_cards.append({
+                "position": i + 1,
+                "label": label,
+                "name": name,
+                "number": number,
+                "reversed": reversed_flag,
+                "image": parsed_img
+            })
 
         # Check API Key
         api_key = os.environ.get("GEMINI_API_KEY") or current_env.get("GEMINI_API_KEY")
@@ -215,34 +230,42 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         if not api_key or api_key == "your_gemini_api_key_here":
             self.send_json_error(
                 500,
-                "GEMINI_API_KEY is not configured in .env. Please add your Google Gemini API key to .env to run live readings."
+                "GEMINI_API_KEY is not configured in .env. Please add your Google Gemini API key to .env."
             )
             return
 
-        spread_label = SPREAD_LABELS.get(spread, "General Reading")
-        user_prompt = f"Reading category: {spread_label}\nUser's question: {question or 'No specific question provided — please provide an overarching reading based on the 3-card spread.'}\n\nI have uploaded 3 images corresponding to the 3-card spread:\n- First image: Card 1 (Past / Foundation)\n- Second image: Card 2 (Present / Active Dynamics)\n- Third image: Card 3 (Future / Emerging Outcome)\n\nPlease identify each card from the 20-card catalog and deliver the structured 3-card reading."
+        spread_label = SPREAD_LABELS.get(spread, "General Guidance")
+
+        card_lines = []
+        for c in parsed_cards:
+            orient = "Reversed ↺" if c["reversed"] else "Upright"
+            if c["name"]:
+                card_lines.append(f"- Position {c['position']} ({c['label']}): {c['name']} ({c['number']}) — {orient}")
+            else:
+                card_lines.append(f"- Position {c['position']} ({c['label']}): Physical card from photo — {orient}")
+
+        user_prompt = f"Reading category: {spread_label}\nUser's question: {question or 'No specific question provided — please provide an overarching reading based on the 3-card spread.'}\n\nSelected 3-Card Spread:\n" + "\n".join(card_lines) + "\n\nPlease deliver the structured 3-card reading according to the guidelines."
 
         full_prompt = build_system_prompt() + "\n\n" + user_prompt
 
-        # Prioritize reliable fast models
         models_to_try = [model]
         for fallback in ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
 
         reading_text = None
-        last_error = None
-
         for current_model in models_to_try:
             api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={api_key}"
             parts_list = [{"text": full_prompt}]
-            for p in parsed_images:
-                parts_list.append({
-                    "inline_data": {
-                        "mime_type": p["mime"],
-                        "data": p["data"]
-                    }
-                })
+
+            for c in parsed_cards:
+                if c["image"]:
+                    parts_list.append({
+                        "inline_data": {
+                            "mime_type": c["image"]["mime"],
+                            "data": c["image"]["data"]
+                        }
+                    })
 
             payload = {"contents": [{"parts": parts_list}]}
             req = urllib.request.Request(
@@ -263,8 +286,6 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
             except urllib.error.HTTPError as e:
                 err_body = e.read().decode("utf-8", errors="replace")
                 print(f"Gemini API [{current_model}] returned HTTP {e.code}: {err_body[:200]}")
-                last_error = e
-                # Retry on temporary spikes (503) or not found (404)
                 if e.code in (503, 404):
                     continue
                 elif e.code == 429:
@@ -277,7 +298,6 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
                     break
             except Exception as e:
                 print(f"Gemini API exception [{current_model}]: {e}")
-                last_error = e
                 continue
 
         if reading_text:
@@ -287,7 +307,7 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"reading": reading_text}).encode("utf-8"))
         else:
-            self.send_json_error(502, "The AI service encountered an error or temporary capacity limit. Please try again in a few moments.")
+            self.send_json_error(502, "The AI service encountered an error. Please try again.")
 
     def send_json_error(self, status_code, message):
         self.send_response(status_code)

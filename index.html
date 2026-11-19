@@ -3,90 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#100d1b">
-<meta name="description" content="Upload 3 physical tarot cards from your deck and receive a deeply personalised 3-card spread interpretation powered by Google Gemini computer vision.">
+<meta name="theme-color" content="#0c0d14">
+<meta name="description" content="Choose 3 cards from the Major Arcana deck or upload your physical cards to receive a deeply personalised 3-card spread interpretation powered by Google Gemini AI.">
 <title>Arcana — 3-Card AI Tarot Experience</title>
-<link rel="stylesheet" href="assets/css/style.css?v=2.2">
+<link rel="stylesheet" href="assets/css/style.css?v=3.0">
 </head>
 <body>
 <header>
   <div class="brand">ARCANA <span>AI TAROT EXPERIENCE</span></div>
   <nav>
-    <a href="#home">HOME</a>
-    <a href="#reading">YOUR READING</a>
+    <a href="#home">READING</a>
+    <a href="#cardLibrarySection">CARDS</a>
+    <a href="#about">HOW IT WORKS</a>
   </nav>
 </header>
 
 <main id="home">
-  <div class="eyebrow">✦ 3-card spread · grounded interpretation ✦</div>
+  <div class="eyebrow">✦ pause · focus · reveal ✦</div>
   <h1>Let the cards tell<br>their story.</h1>
-  <p class="intro">Upload photos of your <strong>3 chosen tarot cards</strong>. Arcana will identify each card from the 20-card deck and synthesize a cohesive 3-card spread interpretation.</p>
+  <p class="intro">Choose <strong>3 cards</strong> directly from the Major Arcana deck below, or switch to photo mode to upload your physical cards. Arcana will synthesize a cohesive, grounded interpretation.</p>
 
   <section class="panel">
-    <!-- Header with 3-card counter badge -->
-    <div class="slot-header">
-      <span class="label" style="margin:0;">Your 3 Cards (Past · Present · Future)</span>
-      <span class="card-counter" id="cardCounter">0 / 3 cards selected</span>
+    <!-- Mode Switcher Tabs -->
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" id="tabDeck" type="button" role="tab" aria-selected="true">
+        <span>✦</span> Pick from deck
+      </button>
+      <button class="mode-tab" id="tabPhoto" type="button" role="tab" aria-selected="false">
+        <span>📷</span> Read a photo
+      </button>
     </div>
 
-    <!-- 3 Upload Slots Grid -->
-    <div class="slots-grid">
-      <!-- Slot 1 -->
-      <div class="card-slot" id="slotContainer1">
-        <div class="slot-badge">Card 1 · Foundation</div>
-        <label class="upload-box" id="dropzone1" for="photo1">
-          <input id="photo1" type="file" accept="image/png,image/jpeg,image/webp">
-          <div class="slot-prompt" id="prompt1">
-            <span class="slot-icon">✧</span>
-            <strong>Upload Card 1</strong>
-            <small>JPG, PNG, WEBP &lt; 5MB</small>
-          </div>
-          <img class="slot-preview" id="preview1" alt="Card 1 preview">
-        </label>
-        <div class="slot-footer">
-          <span class="slot-name" id="fileName1">Empty</span>
-          <button class="remove-btn" id="removeBtn1" type="button" title="Remove card">✕</button>
+    <!-- ── Mode 1: Interactive Deck Selection ── -->
+    <div id="deckModeContainer">
+      <!-- Quick Actions Toolbar -->
+      <div class="quick-toolbar">
+        <span class="slot-counter-label" id="cardCounter">0 / 3 cards selected</span>
+        <div class="toolbar-buttons">
+          <button class="tool-btn" id="drawRandomBtn" type="button">✦ Draw three for me</button>
+          <button class="tool-btn" id="clearSpreadBtn" type="button">Clear spread</button>
         </div>
       </div>
 
-      <!-- Slot 2 -->
-      <div class="card-slot" id="slotContainer2">
-        <div class="slot-badge">Card 2 · Present</div>
-        <label class="upload-box" id="dropzone2" for="photo2">
-          <input id="photo2" type="file" accept="image/png,image/jpeg,image/webp">
-          <div class="slot-prompt" id="prompt2">
-            <span class="slot-icon">✧</span>
-            <strong>Upload Card 2</strong>
-            <small>JPG, PNG, WEBP &lt; 5MB</small>
+      <!-- 3 Spread Slots Grid -->
+      <div class="slots-grid">
+        <!-- Slot 1: Past -->
+        <div class="spread-slot next" id="slotPast" data-pos="past">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Past</span>
+              <span class="slot-pos-desc">What shaped this</span>
+            </div>
+            <button class="slot-remove-btn" id="slotRemovePast" type="button" title="Remove Past card">✕</button>
           </div>
-          <img class="slot-preview" id="preview2" alt="Card 2 preview">
-        </label>
-        <div class="slot-footer">
-          <span class="slot-name" id="fileName2">Empty</span>
-          <button class="remove-btn" id="removeBtn2" type="button" title="Remove card">✕</button>
+          <div class="slot-body">
+            <div class="slot-empty-prompt" id="promptPast">
+              <span>✧</span>
+              Choose a card from the deck
+            </div>
+            <div class="slot-card-display" id="displayPast">
+              <div class="slot-card-img-wrap">
+                <img class="slot-card-img" id="imgPast" src="" alt="Past card">
+              </div>
+              <div class="slot-card-name" id="namePast"></div>
+              <button class="orient-toggle-btn" id="orientPast" type="button" title="Toggle Upright / Reversed">
+                <span class="orient-label">Upright</span> ↺
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Slot 3 -->
-      <div class="card-slot" id="slotContainer3">
-        <div class="slot-badge">Card 3 · Outcome</div>
-        <label class="upload-box" id="dropzone3" for="photo3">
-          <input id="photo3" type="file" accept="image/png,image/jpeg,image/webp">
-          <div class="slot-prompt" id="prompt3">
-            <span class="slot-icon">✧</span>
-            <strong>Upload Card 3</strong>
-            <small>JPG, PNG, WEBP &lt; 5MB</small>
+        <!-- Slot 2: Present -->
+        <div class="spread-slot" id="slotPresent" data-pos="present">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Present</span>
+              <span class="slot-pos-desc">Where you stand</span>
+            </div>
+            <button class="slot-remove-btn" id="slotRemovePresent" type="button" title="Remove Present card">✕</button>
           </div>
-          <img class="slot-preview" id="preview3" alt="Card 3 preview">
-        </label>
-        <div class="slot-footer">
-          <span class="slot-name" id="fileName3">Empty</span>
-          <button class="remove-btn" id="removeBtn3" type="button" title="Remove card">✕</button>
+          <div class="slot-body">
+            <div class="slot-empty-prompt" id="promptPresent">
+              <span>✧</span>
+              Choose a card from the deck
+            </div>
+            <div class="slot-card-display" id="displayPresent">
+              <div class="slot-card-img-wrap">
+                <img class="slot-card-img" id="imgPresent" src="" alt="Present card">
+              </div>
+              <div class="slot-card-name" id="namePresent"></div>
+              <button class="orient-toggle-btn" id="orientPresent" type="button" title="Toggle Upright / Reversed">
+                <span class="orient-label">Upright</span> ↺
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slot 3: Future -->
+        <div class="spread-slot" id="slotFuture" data-pos="future">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Future</span>
+              <span class="slot-pos-desc">Where it may lead</span>
+            </div>
+            <button class="slot-remove-btn" id="slotRemoveFuture" type="button" title="Remove Future card">✕</button>
+          </div>
+          <div class="slot-body">
+            <div class="slot-empty-prompt" id="promptFuture">
+              <span>✧</span>
+              Choose a card from the deck
+            </div>
+            <div class="slot-card-display" id="displayFuture">
+              <div class="slot-card-img-wrap">
+                <img class="slot-card-img" id="imgFuture" src="" alt="Future card">
+              </div>
+              <div class="slot-card-name" id="nameFuture"></div>
+              <button class="orient-toggle-btn" id="orientFuture" type="button" title="Toggle Upright / Reversed">
+                <span class="orient-label">Upright</span> ↺
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Question -->
+    <!-- ── Mode 2: Camera / Photo Upload (Alternate Tab) ── -->
+    <div id="photoModeContainer" style="display:none;">
+      <div class="slot-header-info" style="margin-bottom:14px;">
+        <span class="slot-counter-label" id="photoCounter">0 / 3 photos uploaded</span>
+      </div>
+      <div class="photo-slots-grid">
+        <!-- Photo Slot 1 -->
+        <div class="spread-slot" id="slotContainer1">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Card 1 · Past</span>
+              <span class="slot-pos-desc">Foundation</span>
+            </div>
+            <button class="slot-remove-btn" id="removeBtn1" type="button" title="Remove card">✕</button>
+          </div>
+          <label class="upload-box" id="dropzone1" for="photo1">
+            <input id="photo1" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="slot-empty-prompt" id="prompt1">
+              <span>✧</span>
+              <strong>Upload Card 1</strong>
+              <small style="display:block; color:var(--subtle); margin-top:4px;">JPG, PNG, WEBP &lt; 5MB</small>
+            </div>
+            <img class="upload-box-preview" id="preview1" alt="Card 1 preview">
+          </label>
+          <div style="text-align:center; margin-top:8px;">
+            <span id="fileName1" style="font-size:11px; color:var(--muted);">Empty</span>
+          </div>
+        </div>
+
+        <!-- Photo Slot 2 -->
+        <div class="spread-slot" id="slotContainer2">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Card 2 · Present</span>
+              <span class="slot-pos-desc">Current Focus</span>
+            </div>
+            <button class="slot-remove-btn" id="removeBtn2" type="button" title="Remove card">✕</button>
+          </div>
+          <label class="upload-box" id="dropzone2" for="photo2">
+            <input id="photo2" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="slot-empty-prompt" id="prompt2">
+              <span>✧</span>
+              <strong>Upload Card 2</strong>
+              <small style="display:block; color:var(--subtle); margin-top:4px;">JPG, PNG, WEBP &lt; 5MB</small>
+            </div>
+            <img class="upload-box-preview" id="preview2" alt="Card 2 preview">
+          </label>
+          <div style="text-align:center; margin-top:8px;">
+            <span id="fileName2" style="font-size:11px; color:var(--muted);">Empty</span>
+          </div>
+        </div>
+
+        <!-- Photo Slot 3 -->
+        <div class="spread-slot" id="slotContainer3">
+          <div class="slot-header-info">
+            <div>
+              <span class="slot-pos-badge">Card 3 · Future</span>
+              <span class="slot-pos-desc">Outcome</span>
+            </div>
+            <button class="slot-remove-btn" id="removeBtn3" type="button" title="Remove card">✕</button>
+          </div>
+          <label class="upload-box" id="dropzone3" for="photo3">
+            <input id="photo3" type="file" accept="image/png,image/jpeg,image/webp">
+            <div class="slot-empty-prompt" id="prompt3">
+              <span>✧</span>
+              <strong>Upload Card 3</strong>
+              <small style="display:block; color:var(--subtle); margin-top:4px;">JPG, PNG, WEBP &lt; 5MB</small>
+            </div>
+            <img class="upload-box-preview" id="preview3" alt="Card 3 preview">
+          </label>
+          <div style="text-align:center; margin-top:8px;">
+            <span id="fileName3" style="font-size:11px; color:var(--muted);">Empty</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question Input -->
     <label class="label" for="question" style="margin-top:24px">What would you like insight on?</label>
     <textarea id="question" maxlength="500" placeholder="For example: What should I keep in mind about my career over the next few months?"></textarea>
     <div class="char-count" id="charCount">0 / 500</div>
@@ -124,11 +242,12 @@
     <div class="status" id="status" aria-live="polite"></div>
   </section>
 
-  <!-- Reading result -->
+  <!-- Reading result screen -->
   <section id="reading">
     <div class="reading-head">
       <h2>Your 3-card reading</h2>
       <p id="readingSub">A grounded interpretation of your spread</p>
+      <div class="spread-summary-pills" id="spreadSummaryPills"></div>
     </div>
     <div class="result" id="result"></div>
     <div class="actions">
@@ -137,19 +256,30 @@
     </div>
   </section>
 
-  <!-- Privacy notice -->
-  <div class="privacy-notice">
-    <strong>Privacy notice</strong><br>
-    Your 3 uploaded card images and question are transmitted securely to Google Gemini for visual matching against the 20-card catalog. Images are processed in-memory and not stored on this website. Handling of data is governed by <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer" style="color:var(--muted);">Google's terms</a>.
+  <!-- 20-Card Major Arcana Library Grid Section -->
+  <section class="card-library-section" id="cardLibrarySection">
+    <div class="library-head">
+      <h2>Major Arcana Library</h2>
+      <p>Click any card to place it in your spread. Click again or use the ✕ in the slot to remove it.</p>
+    </div>
+    <div class="card-grid" id="cardLibrary">
+      <!-- 20 cards rendered dynamically by app.js -->
+    </div>
+  </section>
+
+  <!-- Privacy notice & disclaimer -->
+  <div class="privacy-notice" id="about">
+    <strong>Privacy &amp; Grounding Notice</strong><br>
+    Your 3 selected tarot cards and question are processed securely via Google Gemini using canonical Major Arcana symbolism. In photo mode, images are processed in-memory and not stored. Handling of data is governed by <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Google's terms</a>.
   </div>
 
-  <p class="note">For reflection and entertainment only. Tarot cannot reliably predict the future or guarantee outcomes. Avoid using a reading as the sole basis for medical, legal, financial or other important decisions.</p>
+  <p class="note">For reflection and personal insight. Tarot cannot predict the future or guarantee outcomes. Avoid using a reading as the sole basis for medical, legal, financial or life-critical decisions.</p>
 </main>
 
 <footer>
   <div>ARCANA · 3-Card AI Tarot Experience</div>
   <button id="stopServerBtn" class="dev-shutdown-btn" type="button" style="display:none;">⏻ Terminate Local Server</button>
 </footer>
-<script src="assets/js/app.js?v=2.2"></script>
+<script src="assets/js/app.js?v=3.0"></script>
 </body>
 </html>
