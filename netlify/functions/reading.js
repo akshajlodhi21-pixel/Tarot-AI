@@ -13,10 +13,12 @@ try {
   // Handled in invocation if lazy loaded
 }
 
-// ── Rate limiter (in-memory, per cold-start instance) ───────
+// ── Rate limiter & Deduplication (in-memory, per cold-start instance) ───────
 const rateMap = new Map();
+const inFlightMap = new Map();
 const RATE_WINDOW = 60_000; // 1 minute
 const RATE_LIMIT  = 10;     // max requests per window per IP
+const DEDUP_WINDOW = 4_000; // 4 seconds debounce for identical requests
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -35,6 +37,21 @@ function isRateLimited(ip) {
 
   record.count++;
   return record.count > RATE_LIMIT;
+}
+
+function checkDuplicate(fingerprint) {
+  const now = Date.now();
+  if (inFlightMap.size > 100) {
+    for (const [k, ts] of inFlightMap) {
+      if (now - ts > DEDUP_WINDOW) inFlightMap.delete(k);
+    }
+  }
+  const lastTime = inFlightMap.get(fingerprint);
+  if (lastTime && (now - lastTime) < DEDUP_WINDOW) {
+    return true;
+  }
+  inFlightMap.set(fingerprint, now);
+  return false;
 }
 
 // ── Allowed MIME types ──────────────────────────────────────
@@ -206,7 +223,14 @@ exports.handler = async (event) => {
     return respond(400, { error: 'Invalid request body.' });
   }
 
-  const { cards, image, question, spread, mode } = body;
+  // Deduplication check
+  const reqFingerprint = `${clientIP}:${mode || 'deck'}:${spread || 'general'}:${String(question || '').slice(0, 50)}:${Array.isArray(cards) ? cards.map(c => c.name || c.number || '').join('|') : ''}`;
+  if (checkDuplicate(reqFingerprint)) {
+    return respond(429, {
+      error: 'A reading request is already being processed. Please wait for it to complete.',
+      code: 'DUPLICATE_REQUEST'
+    });
+  }
 
   let cardList = [];
   if (Array.isArray(cards) && cards.length > 0) {
@@ -308,41 +332,78 @@ exports.handler = async (event) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Build content parts
+    // Build content parts: selective multimodal (Photo mode only sends images; Deck mode is pure text)
     const contentParts = [systemPrompt + '\n\n' + userPrompt];
 
-    // Append images if available
-    for (const c of parsedCards) {
-      if (c.image) {
-        contentParts.push({
-          inlineData: {
-            mimeType: c.image.mime,
-            data: c.image.data
-          }
-        });
+    if (mode === 'photo') {
+      for (const c of parsedCards) {
+        if (c.image) {
+          contentParts.push({
+            inlineData: {
+              mimeType: c.image.mime,
+              data: c.image.data
+            }
+          });
+        }
       }
     }
 
-    const modelsToTry = [...new Set(['gemini-3.5-flash-lite', model, 'gemini-3.8-flash', 'gemini-flash-latest'])];
+    const modelsToTry = [...new Set([model, 'gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-flash-latest'])];
     let text = null;
     let lastError = null;
 
+    const TIMEOUT_MS = 28_000;
+
     for (const currentModel of modelsToTry) {
       try {
-        const geminiModel = genAI.getGenerativeModel({ model: currentModel });
-        const result = await geminiModel.generateContent(contentParts);
+        const geminiModel = genAI.getGenerativeModel({
+          model: currentModel,
+          generationConfig: {
+            temperature: 0.8,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+          }
+        });
+
+        const generatePromise = geminiModel.generateContent(contentParts);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('REQUEST_TIMEOUT')), TIMEOUT_MS)
+        );
+
+        const result = await Promise.race([generatePromise, timeoutPromise]);
         text = result.response.text();
         if (text && text.trim().length > 0) break;
       } catch (mErr) {
         lastError = mErr;
-        console.warn(`Model ${currentModel} error:`, mErr.message || mErr);
+        const errMsg = mErr.message || '';
+        console.warn(`Model ${currentModel} error:`, errMsg);
+
+        if (errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('429')) {
+          return respond(429, {
+            error: 'The Gemini AI service quota has been reached. Please wait a moment or try again later.',
+            code: 'QUOTA_EXCEEDED'
+          });
+        }
+
+        if (errMsg === 'REQUEST_TIMEOUT') {
+          return respond(504, {
+            error: 'The AI reading request timed out. Please try again.',
+            code: 'TIMEOUT'
+          });
+        }
+
+        if (errMsg.includes('503') || errMsg.includes('UNAVAILABLE')) {
+          await new Promise(r => setTimeout(r, 1200));
+        }
+
         continue;
       }
     }
 
     if (!text || text.trim().length === 0) {
       return respond(502, {
-        error: lastError ? `AI error (${lastError.message || 'unknown'}). Please try again.` : 'The AI did not return a reading. Please try again.',
+        error: lastError ? 'The AI service was unable to generate your reading. Please try again.' : 'No interpretation was returned by the AI.',
+        code: 'GENERATION_FAILED'
       });
     }
 
@@ -352,11 +413,14 @@ exports.handler = async (event) => {
     const msg = err.message || '';
 
     if (msg.includes('API_KEY_INVALID') || msg.includes('PERMISSION_DENIED')) {
-      return respond(500, { error: 'The Gemini API key is invalid or lacks required permissions.' });
+      return respond(500, { error: 'The Gemini API key is invalid or lacks required permissions.', code: 'INVALID_API_KEY' });
     }
     if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('429')) {
-      return respond(429, { error: 'The AI service is currently busy. Please wait a moment and try again.' });
+      return respond(429, { error: 'The AI service is currently busy. Please wait a moment and try again.', code: 'QUOTA_EXCEEDED' });
     }
-    return respond(502, { error: 'The AI service is currently unavailable. Please try again shortly.' });
+    if (msg === 'REQUEST_TIMEOUT') {
+      return respond(504, { error: 'The AI interpretation timed out. Please try again.', code: 'TIMEOUT' });
+    }
+    return respond(502, { error: 'The AI service is currently unavailable. Please try again shortly.', code: 'SERVICE_UNAVAILABLE' });
   }
 };

@@ -6,7 +6,10 @@
 <meta name="theme-color" content="#0c0d14">
 <meta name="description" content="Choose 3 cards from the Major Arcana deck or upload your physical cards to receive a deeply personalised 3-card spread interpretation powered by Google Gemini AI.">
 <title>Arcana — 3-Card AI Tarot Experience</title>
-<link rel="stylesheet" href="assets/css/style.css?v=3.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=4.0">
 </head>
 <body>
 <header>
@@ -63,7 +66,7 @@
             </div>
             <div class="slot-card-display" id="displayPast">
               <div class="slot-card-img-wrap">
-                <img class="slot-card-img" id="imgPast" src="" alt="Past card">
+                <img class="slot-card-img" id="imgPast" alt="Past card" decoding="async">
               </div>
               <div class="slot-card-name" id="namePast"></div>
               <button class="orient-toggle-btn" id="orientPast" type="button" title="Toggle Upright / Reversed">
@@ -89,7 +92,7 @@
             </div>
             <div class="slot-card-display" id="displayPresent">
               <div class="slot-card-img-wrap">
-                <img class="slot-card-img" id="imgPresent" src="" alt="Present card">
+                <img class="slot-card-img" id="imgPresent" alt="Present card" decoding="async">
               </div>
               <div class="slot-card-name" id="namePresent"></div>
               <button class="orient-toggle-btn" id="orientPresent" type="button" title="Toggle Upright / Reversed">
@@ -115,7 +118,7 @@
             </div>
             <div class="slot-card-display" id="displayFuture">
               <div class="slot-card-img-wrap">
-                <img class="slot-card-img" id="imgFuture" src="" alt="Future card">
+                <img class="slot-card-img" id="imgFuture" alt="Future card" decoding="async">
               </div>
               <div class="slot-card-name" id="nameFuture"></div>
               <button class="orient-toggle-btn" id="orientFuture" type="button" title="Toggle Upright / Reversed">
@@ -395,6 +398,6 @@
   <div>ARCANA · 3-Card AI Tarot Experience</div>
   <button id="stopServerBtn" class="dev-shutdown-btn" type="button" style="display:none;">⏻ Terminate Local Server</button>
 </footer>
-<script src="assets/js/app.js?v=4.0"></script>
+<script src="assets/js/app.js?v=4.1"></script>
 </body>
 </html>

@@ -29,3 +29,6 @@ npm-debug.log*
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Local original image backups
+tarot-cards-images/originals/

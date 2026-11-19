@@ -6,28 +6,28 @@
 (function () {
   'use strict';
 
-  // ── 20-Card Canonical Catalog ───────────────────────────────
+  // ── 20-Card Canonical Catalog (Optimized WebP with JPEG fallback) ───
   const CARDS_CATALOG = [
-    { id: 'card_00', number: 'Card 0',  name: 'The Fool',           fileName: 'Card 0 - The Fool.jpg' },
-    { id: 'card_01', number: 'Card 1',  name: 'The Magician',       fileName: 'Card 1 - The Magician .jpg' },
-    { id: 'card_02', number: 'Card 2',  name: 'The High Priestess',  fileName: 'Card 2 - The High Priestess.jpg' },
-    { id: 'card_03', number: 'Card 3',  name: 'The Empress',        fileName: 'Card 3 - The Empress.jpg' },
-    { id: 'card_04', number: 'Card 4',  name: 'The Emperor',        fileName: 'Card 4 - The Emperor.jpg' },
-    { id: 'card_05', number: 'Card 5',  name: 'The Herophant',      fileName: 'Card 5 - The Herophant.jpg' },
-    { id: 'card_06', number: 'Card 6',  name: 'The Lovers',         fileName: 'Card 6 - The Lovers.jpg' },
-    { id: 'card_07', number: 'Card 7',  name: 'The Chariot',        fileName: 'Card 7 - The Chariot.jpg' },
-    { id: 'card_08', number: 'Card 8',  name: 'The Strength',       fileName: 'Card 8 - The Strength.jpg' },
-    { id: 'card_09', number: 'Card 9',  name: 'The Hermit',         fileName: 'Card 9 - The Hermit.jpg' },
-    { id: 'card_10', number: 'Card 10', name: 'Wheel Of Fortune',   fileName: 'Card 10 - Wheel Of Fortune.jpg' },
-    { id: 'card_11', number: 'Card 11', name: 'Justice',            fileName: 'Card 11 - Justice.jpg' },
-    { id: 'card_12', number: 'Card 12', name: 'The Hanged Man',     fileName: 'Card 12 - The Hanged Man.jpg' },
-    { id: 'card_13', number: 'Card 13', name: 'Death',              fileName: 'Card 13 - Death.jpg' },
-    { id: 'card_14', number: 'Card 14', name: 'Temperance',         fileName: 'Card 14 - Temperance.jpg' },
-    { id: 'card_15', number: 'Card 15', name: 'The Devil',          fileName: 'Card 15 - The Devil.jpg' },
-    { id: 'card_16', number: 'Card 16', name: 'The Tower',          fileName: 'Card 16 - The Tower.jpg' },
-    { id: 'card_17', number: 'Card 17', name: 'The Star',           fileName: 'Card 17 - The Star.jpg' },
-    { id: 'card_18', number: 'Card 18', name: 'The Moon',           fileName: 'Card 18 - The Moon.jpg' },
-    { id: 'card_19', number: 'Card 19', name: 'The Sun',            fileName: 'Card 19 - The Sun.jpg' }
+    { id: 'card_00', number: 'Card 0',  name: 'The Fool',           fileName: 'Card 0 - The Fool.webp',         fallback: 'Card 0 - The Fool.jpg' },
+    { id: 'card_01', number: 'Card 1',  name: 'The Magician',       fileName: 'Card 1 - The Magician .webp',    fallback: 'Card 1 - The Magician .jpg' },
+    { id: 'card_02', number: 'Card 2',  name: 'The High Priestess',  fileName: 'Card 2 - The High Priestess.webp', fallback: 'Card 2 - The High Priestess.jpg' },
+    { id: 'card_03', number: 'Card 3',  name: 'The Empress',        fileName: 'Card 3 - The Empress.webp',       fallback: 'Card 3 - The Empress.jpg' },
+    { id: 'card_04', number: 'Card 4',  name: 'The Emperor',        fileName: 'Card 4 - The Emperor.webp',       fallback: 'Card 4 - The Emperor.jpg' },
+    { id: 'card_05', number: 'Card 5',  name: 'The Herophant',      fileName: 'Card 5 - The Herophant.webp',     fallback: 'Card 5 - The Herophant.jpg' },
+    { id: 'card_06', number: 'Card 6',  name: 'The Lovers',         fileName: 'Card 6 - The Lovers.webp',        fallback: 'Card 6 - The Lovers.jpg' },
+    { id: 'card_07', number: 'Card 7',  name: 'The Chariot',        fileName: 'Card 7 - The Chariot.webp',       fallback: 'Card 7 - The Chariot.jpg' },
+    { id: 'card_08', number: 'Card 8',  name: 'The Strength',       fileName: 'Card 8 - The Strength.webp',      fallback: 'Card 8 - The Strength.jpg' },
+    { id: 'card_09', number: 'Card 9',  name: 'The Hermit',         fileName: 'Card 9 - The Hermit.webp',        fallback: 'Card 9 - The Hermit.jpg' },
+    { id: 'card_10', number: 'Card 10', name: 'Wheel Of Fortune',   fileName: 'Card 10 - Wheel Of Fortune.webp', fallback: 'Card 10 - Wheel Of Fortune.jpg' },
+    { id: 'card_11', number: 'Card 11', name: 'Justice',            fileName: 'Card 11 - Justice.webp',          fallback: 'Card 11 - Justice.jpg' },
+    { id: 'card_12', number: 'Card 12', name: 'The Hanged Man',     fileName: 'Card 12 - The Hanged Man.webp',   fallback: 'Card 12 - The Hanged Man.jpg' },
+    { id: 'card_13', number: 'Card 13', name: 'Death',              fileName: 'Card 13 - Death.webp',            fallback: 'Card 13 - Death.jpg' },
+    { id: 'card_14', number: 'Card 14', name: 'Temperance',         fileName: 'Card 14 - Temperance.webp',       fallback: 'Card 14 - Temperance.jpg' },
+    { id: 'card_15', number: 'Card 15', name: 'The Devil',          fileName: 'Card 15 - The Devil.webp',        fallback: 'Card 15 - The Devil.jpg' },
+    { id: 'card_16', number: 'Card 16', name: 'The Tower',          fileName: 'Card 16 - The Tower.webp',        fallback: 'Card 16 - The Tower.jpg' },
+    { id: 'card_17', number: 'Card 17', name: 'The Star',           fileName: 'Card 17 - The Star.webp',         fallback: 'Card 17 - The Star.jpg' },
+    { id: 'card_18', number: 'Card 18', name: 'The Moon',           fileName: 'Card 18 - The Moon.webp',         fallback: 'Card 18 - The Moon.jpg' },
+    { id: 'card_19', number: 'Card 19', name: 'The Sun',            fileName: 'Card 19 - The Sun.webp',          fallback: 'Card 19 - The Sun.jpg' }
   ];
 
   // ── DOM References ──────────────────────────────────────────
@@ -147,18 +147,46 @@
   if (tabDeck) tabDeck.addEventListener('click', () => switchMode('deck'));
   if (tabPhoto) tabPhoto.addEventListener('click', () => switchMode('photo'));
 
-  // ── Status Helpers ──────────────────────────────────────────
+  // ── Status & Dynamic Progress Helpers ───────────────────────
   function setStatus(text, isError) {
     if (!statusEl) return;
     statusEl.textContent = text;
     statusEl.classList.toggle('error', !!isError);
   }
 
+  let progressTimer = null;
+  function startProgressFeedback() {
+    stopProgressFeedback();
+    const stages = [
+      { text: 'Consulting the 3-card spread archetypes' },
+      { text: 'Connecting Past foundation with Present dynamics' },
+      { text: 'Unfolding emerging Future potentials' },
+      { text: 'Synthesizing deeply grounded guidance' }
+    ];
+    let step = 0;
+    const runNext = () => {
+      if (!isRequesting || !statusEl) return;
+      statusEl.innerHTML = `<span>✧</span> ${stages[step].text}<span class="loading-dots"></span>`;
+      statusEl.classList.remove('error');
+      step = (step + 1) % stages.length;
+      progressTimer = setTimeout(runNext, 2600);
+    };
+    runNext();
+  }
+
+  function stopProgressFeedback() {
+    if (progressTimer) {
+      clearTimeout(progressTimer);
+      progressTimer = null;
+    }
+  }
+
   function setLoading(active) {
     if (!statusEl) return;
     if (active) {
-      statusEl.innerHTML = 'Synthesizing 3-card spread interpretation<span class="loading-dots"></span>';
-      statusEl.classList.remove('error');
+      startProgressFeedback();
+    } else {
+      stopProgressFeedback();
     }
   }
 
@@ -222,9 +250,16 @@
     const el = slotEls[pos];
     if (el) {
       if (el.img) {
+        el.img.decoding = 'async';
         el.img.src = `tarot-cards-images/${encodeURIComponent(card.fileName)}`;
         el.img.alt = `${card.name} (${card.number})`;
         el.img.classList.toggle('reversed', !!reversed);
+        el.img.onerror = () => {
+          if (card.fallback && !el.img.dataset.fallbackTried) {
+            el.img.dataset.fallbackTried = '1';
+            el.img.src = `tarot-cards-images/${encodeURIComponent(card.fallback)}`;
+          }
+        };
       }
       if (el.name) {
         el.name.textContent = `${card.name}`;
@@ -318,12 +353,22 @@
 
       btn.innerHTML = `
         <div class="lib-card-img-wrap">
-          <img class="lib-card-img" src="tarot-cards-images/${encodeURIComponent(card.fileName)}" alt="${card.name}" loading="lazy">
+          <img class="lib-card-img" src="tarot-cards-images/${encodeURIComponent(card.fileName)}" alt="${card.name}" loading="lazy" decoding="async">
         </div>
         <div class="lib-card-name">${card.name}</div>
         <div class="lib-card-num">${card.number}</div>
         <span class="lib-selected-badge" style="display:none;"></span>
       `;
+
+      const cardImg = btn.querySelector('.lib-card-img');
+      if (cardImg) {
+        cardImg.onerror = () => {
+          if (card.fallback && !cardImg.dataset.fallbackTried) {
+            cardImg.dataset.fallbackTried = '1';
+            cardImg.src = `tarot-cards-images/${encodeURIComponent(card.fallback)}`;
+          }
+        };
+      }
 
       btn.addEventListener('click', () => handleCardLibraryClick(card));
       cardLibraryEl.appendChild(btn);
@@ -606,6 +651,13 @@
   // ── Submit Reading ──────────────────────────────────────────
   readBtn.addEventListener('click', async () => {
     if (isRequesting) return;
+
+    // Check internet connectivity
+    if (typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
+      setStatus('You appear to be offline. Please check your internet connection and try again.', true);
+      return;
+    }
+
     stopVoiceReader();
 
     let payloadCards = [];
@@ -619,39 +671,34 @@
         return;
       }
 
-      // Convert slot images to DataUrls for Gemini Multimodal
-      const imgPast    = await cardToDataUrl(slotEls.past.img);
-      const imgPresent = await cardToDataUrl(slotEls.present.img);
-      const imgFuture  = await cardToDataUrl(slotEls.future.img);
-
+      // Performance Optimization: In deck mode, send archetypes directly
+      // Cards are already canonical Major Arcana items fully defined in system prompt.
+      // This eliminates base64 canvas rendering latency, saves ~700 KB payload, and accelerates AI inference.
       payloadCards = [
         {
           position: 1,
           label: 'Past',
           name: deckSlots.past.name,
           number: deckSlots.past.number,
-          reversed: deckSlots.past.reversed,
-          image: imgPast
+          reversed: deckSlots.past.reversed
         },
         {
           position: 2,
           label: 'Present',
           name: deckSlots.present.name,
           number: deckSlots.present.number,
-          reversed: deckSlots.present.reversed,
-          image: imgPresent
+          reversed: deckSlots.present.reversed
         },
         {
           position: 3,
           label: 'Future',
           name: deckSlots.future.name,
           number: deckSlots.future.number,
-          reversed: deckSlots.future.reversed,
-          image: imgFuture
+          reversed: deckSlots.future.reversed
         }
       ];
     } else {
-      // Photo Mode
+      // Photo Mode: Multimodal vision payload
       const missing = [];
       photoSlots.forEach((s, idx) => {
         if (!s.data) missing.push(`Card ${idx + 1}`);
@@ -691,9 +738,15 @@
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'The reading could not be generated.');
+        if (res.status === 429) {
+          throw new Error(data.error || 'The AI service quota is currently reached. Please wait a moment or try again later.');
+        }
+        if (res.status === 504) {
+          throw new Error('The AI reading request timed out. Please try revealing again.');
+        }
+        throw new Error(data.error || 'The reading could not be generated. Please try again.');
       }
 
       currentReading = data.reading || 'No reading was returned.';
@@ -731,10 +784,13 @@
     } catch (err) {
       if (err.name === 'AbortError') {
         setStatus('Reading interpretation was cancelled.');
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setStatus('Connection to the server failed. Please check your internet connection.', true);
       } else {
         setStatus(err.message, true);
       }
     } finally {
+      setLoading(false);
       isRequesting = false;
       readBtn.disabled = false;
       readBtn.textContent = currentMode === 'deck' ? 'Reveal my reading ✦' : 'Reveal reading from photo ✦';
@@ -1099,7 +1155,11 @@
     voiceState.isPaused = false;
     updatePlayerUI();
     startKeepAlive();
-    speakNextChunk();
+    // 50ms decoupling tick prevents cancellation race condition on Chromium/Edge
+    setTimeout(() => {
+      if (!voiceState.isPlaying || voiceState.isPaused) return;
+      speakNextChunk();
+    }, 50);
   }
 
   function pauseVoiceReader() {
@@ -1268,7 +1328,11 @@
 
       if (voiceState.isPlaying) {
         window.speechSynthesis.cancel();
-        speakNextChunk();
+        setTimeout(() => {
+          if (voiceState.isPlaying && !voiceState.isPaused) {
+            speakNextChunk();
+          }
+        }, 50);
       }
     });
   }

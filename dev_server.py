@@ -276,14 +276,16 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
             api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent?key={api_key}"
             parts_list = [{"text": full_prompt}]
 
-            for c in parsed_cards:
-                if c["image"]:
-                    parts_list.append({
-                        "inline_data": {
-                            "mime_type": c["image"]["mime"],
-                            "data": c["image"]["data"]
-                        }
-                    })
+            # Selective multimodal: Only append base64 images if in photo mode
+            if mode == "photo":
+                for c in parsed_cards:
+                    if c["image"]:
+                        parts_list.append({
+                            "inline_data": {
+                                "mime_type": c["image"]["mime"],
+                                "data": c["image"]["data"]
+                            }
+                        })
 
             payload = {"contents": [{"parts": parts_list}]}
             payload_json = json.dumps(payload)
