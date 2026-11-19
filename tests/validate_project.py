@@ -74,9 +74,24 @@ if os.path.isfile(js_path):
     test("app.js includes lightweight markdown renderer", "renderMarkdown" in js)
     test("app.js implements AbortController for execution termination", "AbortController" in js and "abort()" in js)
     test("app.js handles Escape key to cancel reading", "Escape" in js and "terminateExecution" in js)
+    test("app.js implements SpeechSynthesis Voice Reader", "speechSynthesis" in js and "SpeechSynthesisUtterance" in js)
+    test("app.js implements markdown cleaner for speech", "cleanMarkdownForSpeech" in js)
+    test("app.js implements language detection for English and Hindi", "detectLanguage" in js and "0900" in js)
+    test("app.js implements chunking to prevent browser speech cutoff", "chunks" in js and "sentenceRegex" in js)
+    test("app.js binds Listen, Play/Pause, Stop, and Replay controls", "listenBtn" in js and "ctrlPlayPauseBtn" in js and "ctrlStopBtn" in js and "ctrlReplayBtn" in js)
 
-# 4. Backend Serverless Functions (Vercel & Netlify)
-print("\n4. Serverless Backend Function Verification")
+# 4. Frontend AI Voice Reader UI Verification
+print("\n4. AI Voice Reader UI Verification")
+if os.path.isfile(html_path):
+    test("index.html contains Listen to Reading button (#listenBtn)", 'id="listenBtn"' in html)
+    test("index.html contains Audio Player card (#voicePlayerCard)", 'id="voicePlayerCard"' in html)
+    test("index.html contains audio controls (#ctrlPlayPauseBtn, #ctrlStopBtn, #ctrlReplayBtn)", 'id="ctrlPlayPauseBtn"' in html and 'id="ctrlStopBtn"' in html and 'id="ctrlReplayBtn"' in html)
+    test("index.html contains progress bar (#playerProgressTrack, #playerProgressFill)", 'id="playerProgressTrack"' in html and 'id="playerProgressFill"' in html)
+    test("index.html contains Voice Settings drawer (#voiceSettingsPanel)", 'id="voiceSettingsPanel"' in html)
+    test("index.html contains voice, rate, and pitch controls (#voiceSelect, #rateSlider, #pitchSlider)", 'id="voiceSelect"' in html and 'id="rateSlider"' in html and 'id="pitchSlider"' in html)
+
+# 5. Backend Serverless Functions (Vercel & Netlify)
+print("\n5. Serverless Backend Function Verification")
 v_fn_path = os.path.join(BASE_DIR, "api", "reading.js")
 test("api/reading.js (Vercel Serverless Function) exists", os.path.isfile(v_fn_path))
 if os.path.isfile(v_fn_path):
