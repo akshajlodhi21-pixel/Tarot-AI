@@ -740,6 +740,10 @@
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (res.status === 423) {
+          showLockScreen();
+          throw new Error(data.error || 'ARCANA is currently locked. The experience will begin shortly.');
+        }
         if (res.status === 429) {
           throw new Error(data.error || 'The AI service quota is currently reached. Please wait a moment or try again later.');
         }
@@ -1425,6 +1429,400 @@
 
   window.addEventListener('beforeunload', () => stopVoiceReader());
   window.addEventListener('pagehide', () => stopVoiceReader());
+
+  // ============================================================
+  // ARCANA JUDGE MODE — SECURE ADMIN LOCK & PRESENTATION ENGINE
+  // ============================================================
+  const lockScreenOverlay       = $('#lockScreenOverlay');
+  const lockEmblemTrigger       = $('#lockEmblemTrigger');
+  const lockStatusMessage       = $('#lockStatusMessage');
+  const lockAdminTriggerBtn     = $('#lockAdminTriggerBtn');
+  const adminModal              = $('#adminModal');
+  const adminModalCloseBtn      = $('#adminModalCloseBtn');
+  const adminModalCancelBtn     = $('#adminModalCancelBtn');
+  const adminLoginForm          = $('#adminLoginForm');
+  const adminPinInput           = $('#adminPinInput');
+  const adminPinToggleBtn       = $('#adminPinToggleBtn');
+  const adminPinError           = $('#adminPinError');
+  const adminUnlockSubmitBtn    = $('#adminUnlockSubmitBtn');
+  const adminBar                = $('#adminBar');
+  const adminLockBtn            = $('#adminLockBtn');
+  const adminSettingsBtn        = $('#adminSettingsBtn');
+  const adminSettingsModal      = $('#adminSettingsModal');
+  const adminSettingsCloseBtn   = $('#adminSettingsCloseBtn');
+  const adminSettingsSaveBtn    = $('#adminSettingsSaveBtn');
+  const adminSettingsLockNowBtn = $('#adminSettingsLockNowBtn');
+  const adminLogoutBtn          = $('#adminLogoutBtn');
+  const autoLockSelect          = $('#autoLockSelect');
+
+  let isAppLocked = true;
+  let isAdminAuthenticated = false;
+  let adminToken = sessionStorage.getItem('arcana_admin_token') || '';
+  let autoLockMinutes = 0;
+  let lastActivityTime = Date.now();
+  let lockPollTimer = null;
+  let autoLockInterval = null;
+
+  function showLockScreen(message) {
+    isAppLocked = true;
+    // Immediately halt active voice narration
+    stopVoiceReader();
+    // Immediately terminate any active reading request
+    if (isRequesting) {
+      terminateExecution();
+    }
+    if (lockStatusMessage && message) {
+      lockStatusMessage.textContent = message;
+    }
+    if (lockScreenOverlay) {
+      lockScreenOverlay.classList.remove('hidden');
+      lockScreenOverlay.style.display = 'flex';
+    }
+    document.body.classList.add('arcana-locked');
+  }
+
+  function hideLockScreen() {
+    isAppLocked = false;
+    if (lockScreenOverlay) {
+      lockScreenOverlay.classList.add('hidden');
+      setTimeout(() => {
+        if (!isAppLocked && lockScreenOverlay) {
+          lockScreenOverlay.style.display = 'none';
+        }
+      }, 350);
+    }
+    document.body.classList.remove('arcana-locked');
+  }
+
+  function openAdminModal() {
+    if (adminModal) {
+      adminModal.style.display = 'flex';
+      if (adminPinInput) {
+        adminPinInput.value = '';
+        setTimeout(() => adminPinInput.focus(), 50);
+      }
+      if (adminPinError) {
+        adminPinError.style.display = 'none';
+        adminPinError.textContent = '';
+      }
+    }
+  }
+
+  function closeAdminModal() {
+    if (adminModal) {
+      adminModal.style.display = 'none';
+      if (adminPinInput) adminPinInput.value = '';
+      if (adminPinError) adminPinError.style.display = 'none';
+    }
+  }
+
+  function openSettingsModal() {
+    if (adminSettingsModal) {
+      adminSettingsModal.style.display = 'flex';
+      if (autoLockSelect) {
+        autoLockSelect.value = String(autoLockMinutes);
+      }
+    }
+  }
+
+  function closeSettingsModal() {
+    if (adminSettingsModal) {
+      adminSettingsModal.style.display = 'none';
+    }
+  }
+
+  // Check Lock Status from Backend
+  async function fetchLockStatus() {
+    try {
+      const res = await fetch('/api/lock-status', {
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.autoLockMinutes !== undefined) {
+        autoLockMinutes = Number(data.autoLockMinutes) || 0;
+        if (autoLockSelect) autoLockSelect.value = String(autoLockMinutes);
+      }
+      if (data.locked) {
+        if (!isAppLocked) {
+          showLockScreen('Locked by Administrator');
+        }
+      } else {
+        if (isAppLocked) {
+          hideLockScreen();
+        }
+      }
+    } catch {}
+  }
+
+  // Submit Admin Unlock Request
+  async function handleAdminUnlock(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const pin = (adminPinInput ? adminPinInput.value : '').trim();
+    if (!pin) {
+      if (adminPinError) {
+        adminPinError.textContent = 'Please enter your Master Admin PIN.';
+        adminPinError.style.display = 'block';
+      }
+      if (adminPinInput) adminPinInput.focus();
+      return;
+    }
+
+    if (adminUnlockSubmitBtn) {
+      adminUnlockSubmitBtn.disabled = true;
+      adminUnlockSubmitBtn.innerHTML = '<span>Verifying…</span>';
+    }
+
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unlock', pin: pin })
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        if (adminPinError) {
+          adminPinError.textContent = data.error || 'Incorrect Admin PIN. Please verify your credentials.';
+          adminPinError.style.display = 'block';
+        }
+        const card = adminModal ? adminModal.querySelector('.admin-modal-card') : null;
+        if (card) {
+          card.classList.remove('shake-error');
+          void card.offsetWidth;
+          card.classList.add('shake-error');
+        }
+        if (adminPinInput) {
+          adminPinInput.value = '';
+          adminPinInput.focus();
+        }
+        return;
+      }
+
+      // Unlock successful
+      if (data.token) {
+        adminToken = data.token;
+        sessionStorage.setItem('arcana_admin_token', data.token);
+      }
+      isAdminAuthenticated = true;
+      if (data.autoLockMinutes !== undefined) {
+        autoLockMinutes = Number(data.autoLockMinutes) || 0;
+        if (autoLockSelect) autoLockSelect.value = String(autoLockMinutes);
+      }
+      if (adminBar) adminBar.style.display = 'flex';
+      closeAdminModal();
+      hideLockScreen();
+      lastActivityTime = Date.now();
+    } catch (err) {
+      if (adminPinError) {
+        adminPinError.textContent = 'Connection error. Please check your network and try again.';
+        adminPinError.style.display = 'block';
+      }
+    } finally {
+      if (adminUnlockSubmitBtn) {
+        adminUnlockSubmitBtn.disabled = false;
+        adminUnlockSubmitBtn.innerHTML = '<span>Unlock Arcana ✦</span>';
+      }
+    }
+  }
+
+  // Admin Lock Action
+  async function handleAdminLock() {
+    if (adminLockBtn) {
+      adminLockBtn.disabled = true;
+    }
+    try {
+      await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'lock', token: adminToken })
+      });
+    } catch {}
+    showLockScreen('Arcana has been locked by Administrator');
+    closeSettingsModal();
+    if (adminLockBtn) adminLockBtn.disabled = false;
+  }
+
+  // Save Settings (Auto-Lock Timeout)
+  async function handleSaveSettings() {
+    const minutes = autoLockSelect ? Number(autoLockSelect.value) : 0;
+    if (adminSettingsSaveBtn) {
+      adminSettingsSaveBtn.disabled = true;
+      adminSettingsSaveBtn.textContent = 'Saving…';
+    }
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set-timeout', token: adminToken, autoLockMinutes: minutes })
+      });
+      if (res.ok) {
+        autoLockMinutes = minutes;
+        if (adminSettingsSaveBtn) adminSettingsSaveBtn.textContent = 'Saved ✓';
+        setTimeout(() => {
+          if (adminSettingsSaveBtn) {
+            adminSettingsSaveBtn.disabled = false;
+            adminSettingsSaveBtn.textContent = 'Save Settings';
+          }
+          closeSettingsModal();
+        }, 500);
+        return;
+      }
+    } catch {}
+    if (adminSettingsSaveBtn) {
+      adminSettingsSaveBtn.disabled = false;
+      adminSettingsSaveBtn.textContent = 'Save Settings';
+    }
+  }
+
+  // Admin Logout
+  function handleAdminLogout() {
+    sessionStorage.removeItem('arcana_admin_token');
+    adminToken = '';
+    isAdminAuthenticated = false;
+    if (adminBar) adminBar.style.display = 'none';
+    closeSettingsModal();
+  }
+
+  // Verify existing token on initial load
+  async function verifyStoredAdminToken() {
+    if (!adminToken) return;
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify-token', token: adminToken })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.valid) {
+          isAdminAuthenticated = true;
+          if (adminBar) adminBar.style.display = 'flex';
+          if (data.autoLockMinutes !== undefined) {
+            autoLockMinutes = Number(data.autoLockMinutes) || 0;
+            if (autoLockSelect) autoLockSelect.value = String(autoLockMinutes);
+          }
+          return;
+        }
+      }
+    } catch {}
+    sessionStorage.removeItem('arcana_admin_token');
+    adminToken = '';
+    isAdminAuthenticated = false;
+    if (adminBar) adminBar.style.display = 'none';
+  }
+
+  // Activity & Inactivity tracking
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach((evt) => {
+    window.addEventListener(evt, () => {
+      lastActivityTime = Date.now();
+    }, { passive: true });
+  });
+
+  function checkInactivity() {
+    if (isAppLocked || autoLockMinutes <= 0) return;
+    const elapsedMin = (Date.now() - lastActivityTime) / 60000;
+    if (elapsedMin >= autoLockMinutes) {
+      handleAdminLock();
+    }
+  }
+
+  // Event Bindings for Judge Mode
+  if (lockAdminTriggerBtn) {
+    lockAdminTriggerBtn.addEventListener('click', () => openAdminModal());
+  }
+  if (lockEmblemTrigger) {
+    lockEmblemTrigger.addEventListener('click', () => openAdminModal());
+  }
+
+  // Secret Triple-Click on header brand
+  const brandEl = $('.brand');
+  if (brandEl) {
+    let brandClicks = 0;
+    let brandClickTimer = null;
+    brandEl.addEventListener('click', () => {
+      brandClicks++;
+      clearTimeout(brandClickTimer);
+      brandClickTimer = setTimeout(() => { brandClicks = 0; }, 800);
+      if (brandClicks >= 3) {
+        brandClicks = 0;
+        openAdminModal();
+      }
+    });
+  }
+
+  // Global Keyboard Shortcuts
+  window.addEventListener('keydown', (e) => {
+    // Alt + L or Ctrl + Shift + A
+    if ((e.altKey && (e.key === 'l' || e.key === 'L')) || (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A'))) {
+      e.preventDefault();
+      openAdminModal();
+      return;
+    }
+    if (e.key === 'Escape') {
+      closeAdminModal();
+      closeSettingsModal();
+    }
+  });
+
+  // PIN Show/Hide Toggle
+  if (adminPinToggleBtn && adminPinInput) {
+    adminPinToggleBtn.addEventListener('click', () => {
+      const isPwd = adminPinInput.type === 'password';
+      adminPinInput.type = isPwd ? 'text' : 'password';
+      adminPinToggleBtn.textContent = isPwd ? '🔒' : '👁';
+    });
+  }
+
+  // Admin Form Submit & Close handlers
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', handleAdminUnlock);
+  }
+  if (adminUnlockSubmitBtn) {
+    adminUnlockSubmitBtn.addEventListener('click', handleAdminUnlock);
+  }
+  if (adminModalCloseBtn) {
+    adminModalCloseBtn.addEventListener('click', closeAdminModal);
+  }
+  if (adminModalCancelBtn) {
+    adminModalCancelBtn.addEventListener('click', closeAdminModal);
+  }
+  if (adminModal) {
+    adminModal.addEventListener('click', (e) => {
+      if (e.target === adminModal) closeAdminModal();
+    });
+  }
+
+  // Admin Floating Bar Controls
+  if (adminLockBtn) {
+    adminLockBtn.addEventListener('click', handleAdminLock);
+  }
+  if (adminSettingsBtn) {
+    adminSettingsBtn.addEventListener('click', openSettingsModal);
+  }
+  if (adminSettingsCloseBtn) {
+    adminSettingsCloseBtn.addEventListener('click', closeSettingsModal);
+  }
+  if (adminSettingsLockNowBtn) {
+    adminSettingsLockNowBtn.addEventListener('click', handleAdminLock);
+  }
+  if (adminSettingsSaveBtn) {
+    adminSettingsSaveBtn.addEventListener('click', handleSaveSettings);
+  }
+  if (adminLogoutBtn) {
+    adminLogoutBtn.addEventListener('click', handleAdminLogout);
+  }
+  if (adminSettingsModal) {
+    adminSettingsModal.addEventListener('click', (e) => {
+      if (e.target === adminSettingsModal) closeSettingsModal();
+    });
+  }
+
+  // Startup Initialization for Judge Mode
+  fetchLockStatus();
+  verifyStoredAdminToken();
+  lockPollTimer = setInterval(fetchLockStatus, 6000);
+  autoLockInterval = setInterval(checkInactivity, 10000);
 
   // ── Terminate Dev Server (Dev Only) ─────────────────────────
   if (stopServerBtn && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

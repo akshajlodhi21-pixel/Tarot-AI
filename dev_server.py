@@ -12,9 +12,19 @@ import os
 import re
 import urllib.request
 import urllib.error
+import time
+import hmac
+import hashlib
 
 PORT = 8888
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ── Global Dev Lock State ─────────────────────────────────────
+DEV_LOCK_STATE = {
+    "locked": True,
+    "autoLockMinutes": 0,
+    "updatedAt": int(time.time())
+}
 
 # ── Load .env file dynamically ────────────────────────────────
 def load_env():
@@ -128,6 +138,24 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
 
     def do_GET(self):
+        # ── API: Lock Status Endpoint ─────────────────────────────
+        if self.path.startswith("/api/lock-status") or self.path.startswith("/.netlify/functions/lock-status"):
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+            self.end_headers()
+            self.wfile.write(json.dumps(DEV_LOCK_STATE).encode("utf-8"))
+            return
+
+        if self.path.startswith("/api/admin") or self.path.startswith("/.netlify/functions/admin"):
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(DEV_LOCK_STATE).encode("utf-8"))
+            return
+
         # ── Security Audit: Block access to sensitive files & dotfiles ──
         raw_path = self.path.split('?')[0].split('#')[0]
         # Normalize Windows backslashes and URL decode
@@ -166,6 +194,8 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path.startswith("/api/reading") or self.path.startswith("/.netlify/functions/reading"):
             self.handle_reading()
+        elif self.path.startswith("/api/admin") or self.path.startswith("/.netlify/functions/admin"):
+            self.handle_admin()
         elif self.path == "/api/shutdown":
             self.send_response(200)
             self.send_cors_headers()
@@ -177,7 +207,89 @@ class ArcanaDevHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_json_error(404, "Endpoint not found.")
 
+    def handle_admin(self):
+        current_env = load_env()
+        admin_pin = current_env.get("ADMIN_PIN") or current_env.get("ADMIN_PASSWORD") or "9198"
+        content_length = int(self.headers.get("Content-Length", 0))
+        body_raw = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
+        try:
+            data = json.loads(body_raw)
+        except Exception:
+            self.send_json_error(400, "Invalid JSON payload.")
+            return
+
+        action = data.get("action")
+        if action == "unlock":
+            pin = str(data.get("pin", "")).strip()
+            if pin == str(admin_pin).strip():
+                DEV_LOCK_STATE["locked"] = False
+                DEV_LOCK_STATE["updatedAt"] = int(time.time())
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                token = "dev_admin_token_" + str(int(time.time()))
+                self.wfile.write(json.dumps({
+                    "success": True,
+                    "locked": False,
+                    "autoLockMinutes": DEV_LOCK_STATE["autoLockMinutes"],
+                    "token": token,
+                    "message": "ARCANA unlocked."
+                }).encode("utf-8"))
+            else:
+                time.sleep(0.5)
+                self.send_response(401)
+                self.send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": "Incorrect Admin PIN. Please verify your credentials.",
+                    "code": "INVALID_PIN"
+                }).encode("utf-8"))
+        elif action == "lock":
+            DEV_LOCK_STATE["locked"] = True
+            DEV_LOCK_STATE["updatedAt"] = int(time.time())
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "locked": True,
+                "autoLockMinutes": DEV_LOCK_STATE["autoLockMinutes"],
+                "message": "ARCANA locked."
+            }).encode("utf-8"))
+        elif action == "set-timeout":
+            minutes = int(data.get("autoLockMinutes", 0))
+            DEV_LOCK_STATE["autoLockMinutes"] = minutes
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "autoLockMinutes": minutes
+            }).encode("utf-8"))
+        elif action == "verify-token":
+            self.send_response(200)
+            self.send_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "valid": True,
+                "locked": DEV_LOCK_STATE["locked"],
+                "autoLockMinutes": DEV_LOCK_STATE["autoLockMinutes"]
+            }).encode("utf-8"))
+        else:
+            self.send_json_error(400, f"Unknown action '{action}'")
+
     def handle_reading(self):
+        # ── Lock State Check ──
+        if DEV_LOCK_STATE.get("locked", True):
+            self.send_json_error(423, "ARCANA is currently locked. The experience will begin shortly.")
+            return
+
         current_env = load_env()
 
         content_length = int(self.headers.get("Content-Length", 0))

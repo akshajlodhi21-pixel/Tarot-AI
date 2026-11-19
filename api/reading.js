@@ -5,6 +5,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { getLockState } = require('./_lock_store');
 
 let GoogleGenerativeAI;
 try {
@@ -206,6 +207,19 @@ module.exports = async function handler(req, res) {
       error: 'Too many requests. Please wait a moment before trying again.',
       code: 'RATE_LIMIT'
     });
+  }
+
+  // ── Lock State Check (Judge Mode Enforcement) ─────────────
+  try {
+    const lockState = await getLockState();
+    if (lockState && lockState.locked) {
+      return res.status(423).json({
+        error: 'ARCANA is currently locked. The experience will begin shortly.',
+        code: 'LOCKED'
+      });
+    }
+  } catch (err) {
+    console.warn('Lock state check warning:', err.message || err);
   }
 
   // Parse Body (Vercel parses JSON bodies automatically)

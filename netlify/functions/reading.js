@@ -5,6 +5,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { getLockState } = require('./_lock_store');
 
 let GoogleGenerativeAI;
 try {
@@ -214,6 +215,19 @@ exports.handler = async (event) => {
     return respond(429, {
       error: 'Too many requests. Please wait a moment before trying again.',
     });
+  }
+
+  // Lock State Check (Judge Mode Enforcement)
+  try {
+    const lockState = await getLockState();
+    if (lockState && lockState.locked) {
+      return respond(423, {
+        error: 'ARCANA is currently locked. The experience will begin shortly.',
+        code: 'LOCKED'
+      });
+    }
+  } catch (err) {
+    console.warn('Lock check warning:', err.message || err);
   }
 
   let body;

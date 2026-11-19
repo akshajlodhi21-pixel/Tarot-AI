@@ -118,6 +118,54 @@ if os.path.isfile(fn_path):
     test("netlify reading.js supports orientation (Upright vs Reversed)", "Reversed" in fn and "Upright" in fn)
     test("netlify reading.js enforces 3-card spread positions (Past, Present, Future)", "Position 1" in fn and "Position 2" in fn and "Position 3" in fn)
 
+# 6. Admin Judge Mode Verification
+print("\n6. Admin Judge Mode & Lock System Verification")
+lock_store_path = os.path.join(BASE_DIR, "api", "_lock_store.js")
+test("api/_lock_store.js exists", os.path.isfile(lock_store_path))
+if os.path.isfile(lock_store_path):
+    with open(lock_store_path, "r", encoding="utf-8") as f:
+        ls_code = f.read()
+    test("Lock store defaults to locked state", "locked: true" in ls_code)
+    test("Lock store verifies admin PIN securely with timingSafeEqual", "timingSafeEqual" in ls_code)
+    test("Lock store creates and verifies HMAC tokens", "createAdminToken" in ls_code and "verifyAdminToken" in ls_code)
+
+admin_ep_path = os.path.join(BASE_DIR, "api", "admin.js")
+test("api/admin.js exists", os.path.isfile(admin_ep_path))
+if os.path.isfile(admin_ep_path):
+    with open(admin_ep_path, "r", encoding="utf-8") as f:
+        adm_code = f.read()
+    test("api/admin.js supports unlock action", "action === 'unlock'" in adm_code)
+    test("api/admin.js supports lock action", "action === 'lock'" in adm_code)
+    test("api/admin.js supports set-timeout action", "action === 'set-timeout'" in adm_code)
+    test("api/admin.js mitigates brute force attacks", "isLoginRateLimited" in adm_code or "failedAttempts" in adm_code)
+
+lock_status_path = os.path.join(BASE_DIR, "api", "lock-status.js")
+test("api/lock-status.js exists", os.path.isfile(lock_status_path))
+
+if os.path.isfile(html_path):
+    test("index.html contains Lock Screen Overlay (#lockScreenOverlay)", 'id="lockScreenOverlay"' in html)
+    test("index.html contains Admin Login Modal (#adminModal)", 'id="adminModal"' in html)
+    test("index.html contains Admin Floating Bar (#adminBar)", 'id="adminBar"' in html)
+    test("index.html contains Admin Settings Modal (#adminSettingsModal)", 'id="adminSettingsModal"' in html)
+
+if os.path.isfile(js_path):
+    test("app.js checks lock status on startup and intervals", "fetchLockStatus" in js)
+    test("app.js handles admin unlock with PIN submission", "handleAdminUnlock" in js)
+    test("app.js handles admin immediate lock", "handleAdminLock" in js)
+    test("app.js handles inactivity auto-lock", "checkInactivity" in js or "autoLockMinutes" in js)
+    test("app.js immediately halts voice narration when locked", "stopVoiceReader" in js)
+
+if os.path.isfile(v_fn_path):
+    test("api/reading.js blocks readings with HTTP 423 when locked", "423" in v_fn and "getLockState" in v_fn)
+
+dev_path = os.path.join(BASE_DIR, "dev_server.py")
+if os.path.isfile(dev_path):
+    with open(dev_path, "r", encoding="utf-8") as f:
+        dev_code = f.read()
+    test("dev_server.py supports /api/admin endpoint", "handle_admin" in dev_code)
+    test("dev_server.py supports /api/lock-status endpoint", "/api/lock-status" in dev_code)
+    test("dev_server.py blocks readings with HTTP 423 when locked", "423" in dev_code and "DEV_LOCK_STATE" in dev_code)
+
 # Print summary
 print("\n" + "=" * 60)
 for r in results:
